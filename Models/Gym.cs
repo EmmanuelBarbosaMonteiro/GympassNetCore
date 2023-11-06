@@ -1,18 +1,15 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace ApiGympass.Entities
+namespace ApiGympass.Models
 {
     public class Gym
     {
         [Key]
+        [Required]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        [StringLength(100)]
+        [MaxLength(100)]
         public string Title { get; set; }
 
         #nullable enable
@@ -26,6 +23,6 @@ namespace ApiGympass.Entities
         [Required]
         public decimal Longitude { get; set; }
 
-        public List<CheckIn> CheckIns { get; set; } = new List<CheckIn>();
+        public virtual ICollection<CheckIn> CheckIns { get; set; }
     }
 }
