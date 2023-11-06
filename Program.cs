@@ -1,5 +1,9 @@
 using ApiGympass.Data;
+using ApiGympass.Data.Repositories.Implementations;
+using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
+using ApiGympass.Services.Implementations;
+using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,11 +21,18 @@ builder.Services
     .AddEntityFrameworkStores<GympassContext>()
     .AddDefaultTokenProviders();
 
+// AutoMapper configuration
 builder.Services.
     AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+// Services and Repositories for DI
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Controllers
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

@@ -11,15 +11,9 @@ namespace ApiGympass.Data
         {
         }
 
-        public DbSet<Gym> Gyms { get; set; }
-        public DbSet<CheckIn> CheckIns { get; set; }
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            
-            builder.Entity<CheckIn>()
-                .HasKey(checkIn => new { checkIn.UserId, checkIn.GymId });
 
             builder.Entity<CheckIn>()
                 .HasOne(checkIn => checkIn.User)
@@ -31,6 +25,9 @@ namespace ApiGympass.Data
                 .WithMany(gym => gym.CheckIns)
                 .HasForeignKey(checkIn => checkIn.GymId);
         }
+
+        public DbSet<Gym> Gyms { get; set; }
+        public DbSet<CheckIn> CheckIns { get; set; }
         
     }
 }

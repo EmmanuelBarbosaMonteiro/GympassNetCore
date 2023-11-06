@@ -1,5 +1,6 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Models;
+using ApiGympass.Services.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,28 +11,23 @@ namespace ApiGympass.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        private IMapper _mapper;
-        private UserManager<User> _userManager;
-
-        public UserController(IMapper mapper, UserManager<User> userManager)
+         private readonly IUserService _userService;
+        public UserController(IUserService userService)
         {
-            _mapper = mapper;
-            _userManager = userManager;
+            _userService = userService;
         }
 
         [HttpPost]
         public async Task<IActionResult> UserRegister(CreateUserDto dto)
         {
-            User user = _mapper.Map<User>(dto);
-
-            IdentityResult result = await _userManager.CreateAsync(user, dto.Password);
+            var result = await _userService.CreateUserAsync(dto);
 
             if (result.Succeeded)
             {
                 return Ok("User created successfully");
             }
 
-            return BadRequest(result.Errors.Select(e => e.Description));
+            return BadRequest("An error occurred");
         }
     }
 }
