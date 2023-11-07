@@ -77,5 +77,24 @@ namespace ApiGympass.Controllers
                 return BadRequest(errors);
             }
         }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserById(Guid userId)
+        {
+            var userDto = await _userService.GetByIdAsync(userId);
+            if (userDto == null)
+            {
+                return NotFound($"User with ID {userId} was not found.");
+            }
+
+            return Ok(userDto);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var userDtos = await _userService.GetAllUsersAsync();
+            return Ok(userDtos);
+        }
     }
 }

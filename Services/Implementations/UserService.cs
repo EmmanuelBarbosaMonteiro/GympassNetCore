@@ -66,5 +66,22 @@ namespace ApiGympass.Services.Implementations
 
             return result;
         }
+
+        public async Task<ReadUserDto> GetByIdAsync(Guid userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<ReadUserDto>(user);
+        }
+
+        public async Task<IEnumerable<ReadUserDto>> GetAllUsersAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+            return users.Select(user => _mapper.Map<ReadUserDto>(user)).ToList();
+        }
     }
 }

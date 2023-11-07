@@ -14,6 +14,9 @@ namespace ApiGympass.Data.Profiles
             CreateMap<UpdateUserDto, User>()
             .ForMember(u => u.UserName, opt => opt.MapFrom(dto => dto.Name))
             .ReverseMap();
+
+            CreateMap<User, ReadUserDto>()
+            .ConstructUsing(user => new ReadUserDto(user.Id, user.Email, user.Name));
         }
     }
 }
