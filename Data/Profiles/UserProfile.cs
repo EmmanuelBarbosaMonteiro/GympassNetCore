@@ -10,6 +10,9 @@ namespace ApiGympass.Data.Profiles
         {
             CreateMap<CreateUserDto, User>()
             .ForMember(u => u.UserName, opt => opt.MapFrom(dto => dto.Name));
+
+            CreateMap<UpdateUserDto, User>()
+            .ForMember(u => u.UserName, opt => opt.MapFrom(dto => dto.Name));
         }
     }
 }

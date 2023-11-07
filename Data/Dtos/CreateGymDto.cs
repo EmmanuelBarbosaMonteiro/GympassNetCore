@@ -9,7 +9,7 @@ namespace ApiGympass.Data.Dtos
         public string Title { get; set; }
 
         #nullable enable
-        public string? Description {get; set; }        
+        public string? Description { get; set; }
         public string? Phone { get; set; }
         #nullable disable
 

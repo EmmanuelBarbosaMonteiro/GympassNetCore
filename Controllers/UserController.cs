@@ -1,8 +1,5 @@
 using ApiGympass.Data.Dtos;
-using ApiGympass.Models;
 using ApiGympass.Services.Interfaces;
-using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiGympass.Controllers
@@ -18,16 +15,45 @@ namespace ApiGympass.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UserRegister(CreateUserDto dto)
+        public async Task<IActionResult> UserRegister([FromBody] CreateUserDto dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var result = await _userService.CreateUserAsync(dto);
 
             if (result.Succeeded)
             {
                 return Ok("User created successfully");
             }
+            else
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return BadRequest(errors);
+            }
+        }
 
-            return BadRequest("An error occurred");
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserDto updateUserDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _userService.UpdateUserAsync(userId, updateUserDto);
+
+            if (result.Succeeded)
+            {
+                return Ok("User updated successfully");
+            }
+            else
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return BadRequest(errors);
+            }
         }
     }
 }
