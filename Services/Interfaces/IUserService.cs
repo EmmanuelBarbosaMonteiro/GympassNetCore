@@ -1,5 +1,6 @@
 using ApiGympass.Data.Dtos;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace ApiGympass.Services.Interfaces
 {
@@ -7,5 +8,6 @@ namespace ApiGympass.Services.Interfaces
     {
         Task<IdentityResult> CreateUserAsync(CreateUserDto createUserDto);
         Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto);
+        Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument);
     }
 }

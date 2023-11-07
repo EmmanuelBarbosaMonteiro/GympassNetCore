@@ -4,6 +4,7 @@ using ApiGympass.Models;
 using ApiGympass.Services.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace ApiGympass.Services.Implementations
 {
@@ -40,6 +41,26 @@ namespace ApiGympass.Services.Implementations
             }
 
             _mapper.Map(updateUserDto, user);
+
+            var result = await _userManager.UpdateAsync(user);
+
+            return result;
+        }
+
+        public async Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+            }
+
+            var userDto = _mapper.Map<UpdateUserDto>(user);
+
+            patchDocument.ApplyTo(userDto);
+
+            _mapper.Map(userDto, user);
 
             var result = await _userManager.UpdateAsync(user);
 

@@ -1,6 +1,7 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace ApiGympass.Controllers
 {
@@ -48,6 +49,27 @@ namespace ApiGympass.Controllers
             if (result.Succeeded)
             {
                 return Ok("User updated successfully");
+            }
+            else
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return BadRequest(errors);
+            }
+        }
+
+        [HttpPatch("{userId}")]
+        public async Task<IActionResult> PatchUser(string userId, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
+        {
+            if (patchDoc == null || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _userService.PatchUserAsync(userId, patchDoc);
+
+            if (result.Succeeded)
+            {
+                return Ok("User patched successfully");
             }
             else
             {
