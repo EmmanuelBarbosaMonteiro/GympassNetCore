@@ -96,7 +96,7 @@ namespace ApiGympass.Services.Implementations
             }
 
             user.IsDeleted = true;
-
+            
             var result = await _userManager.UpdateAsync(user);
             
             return result;

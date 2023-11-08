@@ -28,6 +28,10 @@ builder.Services.
 // Services and Repositories for DI
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<ICheckInService, CheckInService>();
+builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
+
 builder.Services.AddControllers().AddNewtonsoftJson();
 
 // Controllers

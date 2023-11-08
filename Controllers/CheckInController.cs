@@ -1,9 +1,6 @@
-using ApiGympass.Data;
 using ApiGympass.Data.Dtos;
-using ApiGympass.Models;
-using AutoMapper;
+using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiGympass.Controllers
 {
@@ -11,23 +8,26 @@ namespace ApiGympass.Controllers
     [Route("[controller]")]
     public class CheckInController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly GympassContext _context;
+        private readonly ICheckInService _checkInService;
 
-        public CheckInController(IMapper mapper, GympassContext context)
+        public CheckInController(ICheckInService checkInService)
         {
-            _mapper = mapper;
-            _context = context;
+            _checkInService = checkInService;
         }
 
         [HttpPost]
-        public IActionResult CreateCheckIn(CreateCheckInDto dto)
+        public async Task<IActionResult> CreateCheckIn(CreateCheckInDto checkInDto)
         {
-            var checkIn = _mapper.Map<CheckIn>(dto);
-            _context.CheckIns.Add(checkIn);
-            _context.SaveChanges();
+            try
+            {
+                var checkIn = await _checkInService.CreateCheckInAsync(checkInDto);
 
-            return Ok();
+                return Ok("Check-in created successfully.");
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }
