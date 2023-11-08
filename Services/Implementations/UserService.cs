@@ -70,6 +70,7 @@ namespace ApiGympass.Services.Implementations
         public async Task<ReadUserDto> GetByIdAsync(Guid userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
+            
             if (user == null)
             {
                 return null;
@@ -81,7 +82,24 @@ namespace ApiGympass.Services.Implementations
         public async Task<IEnumerable<ReadUserDto>> GetAllUsersAsync()
         {
             var users = await _userRepository.GetAllAsync();
+
             return users.Select(user => _mapper.Map<ReadUserDto>(user)).ToList();
+        }
+
+        public async Task<IdentityResult> DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+            }
+
+            user.IsDeleted = true;
+
+            var result = await _userManager.UpdateAsync(user);
+            
+            return result;
         }
     }
 }

@@ -15,6 +15,8 @@ namespace ApiGympass.Models
 
         public virtual ICollection<CheckIn> CheckIns { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public User() : base() {}
     }
 }

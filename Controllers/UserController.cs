@@ -32,6 +32,7 @@ namespace ApiGympass.Controllers
             else
             {
                 var errors = result.Errors.Select(e => e.Description);
+
                 return BadRequest(errors);
             }
         }
@@ -53,6 +54,7 @@ namespace ApiGympass.Controllers
             else
             {
                 var errors = result.Errors.Select(e => e.Description);
+
                 return BadRequest(errors);
             }
         }
@@ -74,6 +76,7 @@ namespace ApiGympass.Controllers
             else
             {
                 var errors = result.Errors.Select(e => e.Description);
+
                 return BadRequest(errors);
             }
         }
@@ -82,6 +85,7 @@ namespace ApiGympass.Controllers
         public async Task<IActionResult> GetUserById(Guid userId)
         {
             var userDto = await _userService.GetByIdAsync(userId);
+
             if (userDto == null)
             {
                 return NotFound($"User with ID {userId} was not found.");
@@ -94,7 +98,22 @@ namespace ApiGympass.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             var userDtos = await _userService.GetAllUsersAsync();
+
             return Ok(userDtos);
+        }
+
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            var result = await _userService.DeleteUserAsync(userId);
+            if (result.Succeeded)
+            {
+                return Ok("User deleted successfully.");
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
         }
     }
 }

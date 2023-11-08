@@ -11,5 +11,6 @@ namespace ApiGympass.Services.Interfaces
         Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument);
         Task<ReadUserDto> GetByIdAsync(Guid userId);
         Task<IEnumerable<ReadUserDto>> GetAllUsersAsync();
+        Task<IdentityResult> DeleteUserAsync(string userId);
     }
 }
