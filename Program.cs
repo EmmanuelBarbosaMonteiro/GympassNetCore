@@ -32,6 +32,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICheckInService, CheckInService>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 
+builder.Services.AddScoped<IGymService, GymService>();
+builder.Services.AddScoped<IGymRepository, GymRepository>();
+
 builder.Services.AddControllers().AddNewtonsoftJson();
 
 // Controllers

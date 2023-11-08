@@ -1,7 +1,5 @@
-using ApiGympass.Data;
 using ApiGympass.Data.Dtos;
-using ApiGympass.Models;
-using AutoMapper;
+using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiGympass.Controllers
@@ -10,22 +8,26 @@ namespace ApiGympass.Controllers
     [Route("[controller]")]
     public class GymController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly GympassContext _context;
+        private readonly IGymService _gymService;
 
-        public GymController(IMapper mapper, GympassContext context)
+        public GymController(IGymService gymService)
         {
-            _mapper = mapper;
-            _context = context;
+            _gymService = gymService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateGym(CreateGymDto dto)
+        public async Task<IActionResult> CreateGym(CreateGymDto gymDto)
         {
-            var gym = _mapper.Map<Gym>(dto);
-            _context.Gyms.Add(gym);
-            await _context.SaveChangesAsync();
-            return Ok(gym);
+            try
+            {
+                var gym = await _gymService.CreateGymAsync(gymDto);
+
+                return Ok("Gym created successfully.");
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }
