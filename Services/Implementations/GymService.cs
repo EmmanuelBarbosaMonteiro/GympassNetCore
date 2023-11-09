@@ -2,6 +2,7 @@ using ApiGympass.Data.Dtos;
 using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
 using ApiGympass.Services.Interfaces;
+using ApiGympass.Utils;
 
 namespace ApiGympass.Services.Implementations
 {
@@ -14,18 +15,27 @@ namespace ApiGympass.Services.Implementations
             _gymRepository = gymRepository;
         }
         
-        public async Task<Gym> CreateGymAsync(CreateGymDto gymDto)
+        public async Task<ServiceResult<Gym>> CreateGymAsync(CreateGymDto gymDto)
         {
-           var gym = new Gym
+           try
            {
-                Title = gymDto.Title,
-                Latitude = gymDto.Latitude,
-                Longitude = gymDto.Longitude
-           };
+                var gym = new Gym
+                {
+                    Title = gymDto.Title,
+                    Latitude = gymDto.Latitude,
+                    Longitude = gymDto.Longitude,
+                    Description = gymDto.Description,
+                    Phone = gymDto.Phone
+                };
 
-            await _gymRepository.CreateGymAsync(gym);
-            
-            return gym;
+                await _gymRepository.CreateGymAsync(gym);
+
+                return new ServiceResult<Gym>(true, gym, null);
+           }
+           catch (Exception e)
+           {
+               return new ServiceResult<Gym>(false, null, e.Message);
+           }
         }
     }
 }

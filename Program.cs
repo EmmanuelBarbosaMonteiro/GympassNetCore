@@ -1,6 +1,7 @@
 using ApiGympass.Data;
 using ApiGympass.Data.Repositories.Implementations;
 using ApiGympass.Data.Repositories.Interfaces;
+using ApiGympass.Middlewares;
 using ApiGympass.Models;
 using ApiGympass.Services.Implementations;
 using ApiGympass.Services.Interfaces;
@@ -56,6 +57,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<ApiResponseMiddleware>();
 
 app.MapControllers();
 

@@ -10,7 +10,7 @@ namespace ApiGympass.Controllers
     {
         private readonly IGymService _gymService;
 
-        public GymController(IGymService gymService)
+        public GymController(IGymService gymService, ILogger<GymController> logger)
         {
             _gymService = gymService;
         }
@@ -18,15 +18,20 @@ namespace ApiGympass.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateGym(CreateGymDto gymDto)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var gym = await _gymService.CreateGymAsync(gymDto);
-
-                return Ok("Gym created successfully.");
+                return BadRequest(ModelState);
             }
-            catch (InvalidOperationException e)
+            
+            var result = await _gymService.CreateGymAsync(gymDto);
+
+            if (result.IsSuccess)
             {
-                return BadRequest(e.Message);
+                return Ok(result.Entity.Id);
+            }
+            else
+            {
+                return BadRequest(result.ErrorMessage);
             }
         }
     }
