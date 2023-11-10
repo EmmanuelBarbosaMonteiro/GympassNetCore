@@ -33,8 +33,8 @@ namespace ApiGympass.Controllers
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation($"CreateUser: User successfully created with ID {user.Id}");
-                    return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+                    _logger.LogInformation("User created successfully with ID: {UserId}", user.Id);
+                    return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user); 
                 }
                 else
                 {

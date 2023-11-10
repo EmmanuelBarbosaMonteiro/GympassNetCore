@@ -13,28 +13,43 @@ namespace ApiGympass.Services.Implementations
         private readonly IUserRepository _userRepository;
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
+        private readonly ILogger<CheckInService> _logger;
 
-        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper)
+        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<CheckInService> logger)
         {
             _userRepository = userRepository;
             _userManager = userManager;
             _mapper = mapper;
+            _logger = logger;
         }
 
-        public async Task<(IdentityResult Result,  User User)> CreateUserAsync(CreateUserDto createUserDto)
+        public async Task<(IdentityResult Result, ReadUserDto ReadUserDto)> CreateUserAsync(CreateUserDto createUserDto)
         {
             var user = _mapper.Map<User>(createUserDto);
 
-            var result = await _userManager.CreateAsync(user, createUserDto.Password);
+            try
+            {
+                var result = await _userManager.CreateAsync(user, createUserDto.Password);
 
-            if (result.Succeeded)
-            {
-                return (result, user);
+                if (result.Succeeded)
+                {
+                    var readUserDto = _mapper.Map<ReadUserDto>(user);
+
+                    _logger.LogInformation("User created with ID: {UserId}", user.Id);
+
+                    return (result, readUserDto);
+                }
+                else
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogWarning($"CreateUser: Failed to create user - {errors}");
+                    return (result, null);
+                }
             }
-            else
+            catch (Exception e)
             {
-                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new ApplicationException(errorMessage);
+                _logger.LogError(e, "Error occurred while creating user.");
+                throw;
             }
         }
 
