@@ -1,7 +1,6 @@
 using ApiGympass.Data;
 using ApiGympass.Data.Repositories.Implementations;
 using ApiGympass.Data.Repositories.Interfaces;
-using ApiGympass.Middlewares;
 using ApiGympass.Models;
 using ApiGympass.Services.Implementations;
 using ApiGympass.Services.Interfaces;
@@ -17,7 +16,7 @@ builder.Services.AddDbContext<GympassContext>(options =>
 builder.Services
     .AddIdentity<User, IdentityRole<Guid>>(options =>
     {
-      options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@ ";
+      options.User.AllowedUserNameCharacters = "aãbcdefghijklmnoõpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
     })
     .AddEntityFrameworkStores<GympassContext>()
     .AddDefaultTokenProviders();
@@ -57,8 +56,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
-app.UseMiddleware<ApiResponseMiddleware>();
 
 app.MapControllers();
 

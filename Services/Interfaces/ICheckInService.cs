@@ -5,6 +5,7 @@ namespace ApiGympass.Services.Interfaces
 {
     public interface ICheckInService
     {
-        Task<CheckIn> CreateCheckInAsync(CreateCheckInDto checkInDto);
+        Task<CreateCheckInDto> CreateCheckInAsync(CreateCheckInDto checkInDto);
+        Task<ReadCheckInDto> GetCheckInByIdAsync(Guid checkInId);
     }
 }

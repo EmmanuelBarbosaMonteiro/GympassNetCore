@@ -9,6 +9,7 @@ namespace ApiGympass.Data.Profiles
         public GymProfile()
         {
             CreateMap<CreateGymDto, Gym>();
+            CreateMap<Gym, ReadGymDto>();
         }
     }
 }

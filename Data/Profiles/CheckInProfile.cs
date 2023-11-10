@@ -9,6 +9,8 @@ namespace ApiGympass.Data.Profiles
         public CheckInProfile()
         {
             CreateMap<CreateCheckInDto, CheckIn>();
+            CreateMap<CheckIn, ReadCheckInDto>();
+            CreateMap<CheckIn, CreateCheckInDto>();
         }
     }
 }

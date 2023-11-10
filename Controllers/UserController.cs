@@ -9,31 +9,44 @@ namespace ApiGympass.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
+
+        public UserController(IUserService userService, ILogger<UserController> logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
         [HttpPost]
-        public async Task<IActionResult> UserRegister([FromBody] CreateUserDto dto)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("CreateUser: Invalid model");
                 return BadRequest(ModelState);
             }
 
-            var result = await _userService.CreateUserAsync(dto);
-
-            if (result.Succeeded)
+            try
             {
-                return Ok("User created successfully");
+                var (result, user) = await _userService.CreateUserAsync(dto);
+
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation($"CreateUser: User successfully created with ID {user.Id}");
+                    return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+                }
+                else
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogWarning($"CreateUser: Failed to create user - {errors}");
+                    return BadRequest(new { Error = errors });
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errors = result.Errors.Select(e => e.Description);
-
-                return BadRequest(errors);
+                _logger.LogError(ex, "CreateUser: Unexpected exception");
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
@@ -84,14 +97,25 @@ namespace ApiGympass.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetUserById(Guid userId)
         {
-            var userDto = await _userService.GetByIdAsync(userId);
-
-            if (userDto == null)
+            try
             {
-                return NotFound($"User with ID {userId} was not found.");
-            }
+                var user = await _userService.GetByIdAsync(userId);
 
-            return Ok(userDto);
+                if (user != null)
+                {
+                    return Ok(user);
+                }
+                else
+                {
+                    _logger.LogWarning($"GetUser: User with ID {userId} not found");
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"GetUser: Exception while fetching user with ID {userId}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
         }
 
         [HttpGet]

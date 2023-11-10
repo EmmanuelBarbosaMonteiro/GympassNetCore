@@ -20,5 +20,10 @@ namespace ApiGympass.Data.Repositories.Implementations
 
             return checkIn;
         }
+
+        public async Task<CheckIn> GetCheckInByIdAsync(Guid checkInId)
+        {
+            return await _context.CheckIns.FindAsync(checkInId);
+        }
     }
 }

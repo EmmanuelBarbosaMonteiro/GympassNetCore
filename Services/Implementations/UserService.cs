@@ -21,14 +21,21 @@ namespace ApiGympass.Services.Implementations
             _mapper = mapper;
         }
 
-        public async Task<IdentityResult> CreateUserAsync(CreateUserDto dto)
+        public async Task<(IdentityResult Result,  User User)> CreateUserAsync(CreateUserDto createUserDto)
         {
-            var user = _mapper.Map<User>(dto);
-            
-            var result = await _userManager.CreateAsync(user, dto.Password);
+            var user = _mapper.Map<User>(createUserDto);
 
+            var result = await _userManager.CreateAsync(user, createUserDto.Password);
 
-            return result;
+            if (result.Succeeded)
+            {
+                return (result, user);
+            }
+            else
+            {
+                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new ApplicationException(errorMessage);
+            }
         }
 
         public async Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)
@@ -67,7 +74,7 @@ namespace ApiGympass.Services.Implementations
             return result;
         }
 
-        public async Task<ReadUserDto> GetByIdAsync(Guid userId)
+        public async Task<IdentityResult> GetByIdAsync(Guid userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             
@@ -76,7 +83,7 @@ namespace ApiGympass.Services.Implementations
                 return null;
             }
 
-            return _mapper.Map<ReadUserDto>(user);
+            return _mapper.Map<IdentityResult>(user);
         }
 
         public async Task<IEnumerable<ReadUserDto>> GetAllUsersAsync()
