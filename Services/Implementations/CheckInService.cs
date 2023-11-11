@@ -10,24 +10,25 @@ namespace ApiGympass.Services.Implementations
     {
         private readonly ICheckInRepository _checkInRepository;
         private readonly IMapper _mapper;
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly ILogger<CheckInService> _logger;
 
-        public CheckInService(ICheckInRepository checkInRepository, IMapper mapper, IUserRepository userRepository, ILogger<CheckInService> logger)
+        public CheckInService(ICheckInRepository checkInRepository, IMapper mapper, IUserService userService, ILogger<CheckInService> logger)
         {
             _checkInRepository = checkInRepository;
             _mapper = mapper;
-            _userRepository = userRepository;
+            _userService = userService;
             _logger = logger;
         }
 
         public async Task<CreateCheckInDto> CreateCheckInAsync(CreateCheckInDto checkInDto)
         {
-            var user = await _userRepository.GetByIdAsync(checkInDto.UserId);
+            var user = await _userService.GetByIdAsync(checkInDto.UserId);
             
-            if (user == null || user.IsDeleted)
+            if (user == null)
             {
-                throw new ArgumentException("User not found.");
+                _logger.LogWarning("Attempted to create a check-in for a non-existent or inactive user.");
+                throw new InvalidOperationException("User not found.");
             }
 
             try

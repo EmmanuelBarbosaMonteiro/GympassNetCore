@@ -26,14 +26,18 @@ builder.Services.
     AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Services and Repositories for DI
-builder.Services.AddScoped<IUserService, UserService>();
+
+// Repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
+builder.Services.AddScoped<IGymRepository, GymRepository>();
+
+// Services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.Decorate<IUserService, ArchivingUserService>();
 
 builder.Services.AddScoped<ICheckInService, CheckInService>();
-builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
-
 builder.Services.AddScoped<IGymService, GymService>();
-builder.Services.AddScoped<IGymRepository, GymRepository>();
 
 builder.Services.AddControllers().AddNewtonsoftJson();
 

@@ -55,20 +55,29 @@ namespace ApiGympass.Controllers
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("UpdateUser: Invalid model");
                 return BadRequest(ModelState);
             }
 
-            var result = await _userService.UpdateUserAsync(userId, updateUserDto);
-
-            if (result.Succeeded)
+            try
             {
-                return Ok("User updated successfully");
+                var result = await _userService.UpdateUserAsync(userId, updateUserDto);
+
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("User updated successfully with ID: {UserId}", userId);
+                    return Ok("User updated successfully");
+                }
+                else
+                {
+                    _logger.LogWarning($"GetUser: User with ID {userId} not found");
+                    return NotFound("User not found.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errors = result.Errors.Select(e => e.Description);
-
-                return BadRequest(errors);
+                _logger.LogError(ex, "UpdateUser: Unexpected exception");
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
@@ -77,21 +86,31 @@ namespace ApiGympass.Controllers
         {
             if (patchDoc == null || !ModelState.IsValid)
             {
+                _logger.LogWarning("PatchUser: Invalid model");
                 return BadRequest(ModelState);
             }
 
-            var result = await _userService.PatchUserAsync(userId, patchDoc);
-
-            if (result.Succeeded)
+            try
             {
-                return Ok("User patched successfully");
-            }
-            else
-            {
-                var errors = result.Errors.Select(e => e.Description);
+                var result = await _userService.PatchUserAsync(userId, patchDoc);
 
-                return BadRequest(errors);
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("User patched successfully with ID: {UserId}", userId);
+                    return Ok("User patched successfully");
+                }
+                else
+                {
+                    _logger.LogWarning($"GetUser: User with ID {userId} not found");
+                    return NotFound("User not found.");
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "PatchUser: Unexpected exception");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+            
         }
 
         [HttpGet("{userId}")]
@@ -103,12 +122,13 @@ namespace ApiGympass.Controllers
 
                 if (user != null)
                 {
+                    _logger.LogInformation("User retrieved successfully with ID: {UserId}", userId);
                     return Ok(user);
                 }
                 else
                 {
                     _logger.LogWarning($"GetUser: User with ID {userId} not found");
-                    return NotFound();
+                    return NotFound("User not found.");
                 }
             }
             catch (Exception ex)
@@ -123,6 +143,7 @@ namespace ApiGympass.Controllers
         {
             var userDtos = await _userService.GetAllUsersAsync();
 
+            _logger.LogInformation("Retrieved all users successfully.");
             return Ok(userDtos);
         }
 
@@ -132,11 +153,13 @@ namespace ApiGympass.Controllers
             var result = await _userService.DeleteUserAsync(userId);
             if (result.Succeeded)
             {
+                _logger.LogInformation("User deleted successfully with ID: {UserId}", userId);
                 return Ok("User deleted successfully.");
             }
             else
             {
-                return BadRequest(result.Errors);
+                _logger.LogWarning($"GetUser: User with ID {userId} not found");
+                return NotFound("User not found or deleted.");
             }
         }
     }

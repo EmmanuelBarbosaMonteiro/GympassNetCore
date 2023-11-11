@@ -15,8 +15,6 @@ namespace ApiGympass.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
-
             builder.Entity<CheckIn>()
                 .HasOne(checkIn => checkIn.User)
                 .WithMany(user => user.CheckIns)

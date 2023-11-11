@@ -40,10 +40,15 @@ namespace ApiGympass.Controllers
                 _logger.LogInformation("Check-in created successfully with ID: {CheckInId}", checkIn.Id);
                 return CreatedAtAction(nameof(GetCheckInById), new { id = checkIn.Id }, checkIn);
             }
-            catch (ArgumentException e)
+            catch (InvalidOperationException e) when (e.Message == "User not found.")
             {
-                _logger.LogWarning(e, "Exception occurred while creating check-in.");
-                return StatusCode(500, "An error occurred while creating the check-in.");
+                _logger.LogWarning(e, "Exception occurred while creating check-in: User not found.");
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unhandled exception occurred while creating check-in.");
+                return StatusCode(500, "An internal error occurred while creating the check-in.");
             }
         }
 

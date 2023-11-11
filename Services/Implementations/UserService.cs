@@ -59,6 +59,7 @@ namespace ApiGympass.Services.Implementations
 
             if (user == null)
             {
+                _logger.LogWarning("Attempted to update a non-existent user.");
                 return IdentityResult.Failed(new IdentityError { Description = "User not found" });
             }
 
@@ -75,6 +76,7 @@ namespace ApiGympass.Services.Implementations
 
             if (user == null)
             {
+                _logger.LogWarning("Attempted to update a non-existent user.");
                 return IdentityResult.Failed(new IdentityError { Description = "User not found" });
             }
 
@@ -89,7 +91,7 @@ namespace ApiGympass.Services.Implementations
             return result;
         }
 
-        public async Task<IdentityResult> GetByIdAsync(Guid userId)
+        public async Task<ReadUserDto> GetByIdAsync(Guid userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             
@@ -98,7 +100,7 @@ namespace ApiGympass.Services.Implementations
                 return null;
             }
 
-            return _mapper.Map<IdentityResult>(user);
+            return user == null ? null : _mapper.Map<ReadUserDto>(user);
         }
 
         public async Task<IEnumerable<ReadUserDto>> GetAllUsersAsync()
@@ -116,8 +118,6 @@ namespace ApiGympass.Services.Implementations
             {
                 return IdentityResult.Failed(new IdentityError { Description = "User not found." });
             }
-
-            user.IsDeleted = true;
             
             var result = await _userManager.UpdateAsync(user);
             

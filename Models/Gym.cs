@@ -18,6 +18,8 @@ namespace ApiGympass.Models
         [Required]
         public decimal? Longitude { get; set; }
 
+        public State State { get; set; }
+
         #nullable enable
         public string? Description {get; set; }        
         public string? Phone { get; set; }
