@@ -1,5 +1,6 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Models;
+using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -10,11 +11,13 @@ namespace ApiGympass.Services.Implementations
     {
         private readonly IUserService _decoratedUserService;
         private readonly UserManager<User> _userManager;
+        private readonly ILogger<ArchivingUserService> _logger;
 
-        public ArchivingUserService(IUserService decoratedUserService, UserManager<User> userManager)
+        public ArchivingUserService(IUserService decoratedUserService, UserManager<User> userManager, ILogger<ArchivingUserService> logger)
         {
             _decoratedUserService = decoratedUserService;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public async Task<(IdentityResult Result, ReadUserDto ReadUserDto)> CreateUserAsync(CreateUserDto createUserDto)
@@ -27,9 +30,11 @@ namespace ApiGympass.Services.Implementations
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.State == State.Inactive)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "User not found or deleted." });
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
             }
 
+            _logger.LogInformation("User updated with ID: {UserId}", user.Id);
             return await _decoratedUserService.UpdateUserAsync(userId, updateUserDto);
         }
 
@@ -38,9 +43,11 @@ namespace ApiGympass.Services.Implementations
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.State == State.Inactive)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "User not found or is inactive." });
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
             }
 
+            _logger.LogInformation("User updated with ID: {UserId}", user.Id);
             return await _decoratedUserService.PatchUserAsync(userId, patchDocument);
         }
 
@@ -49,6 +56,7 @@ namespace ApiGympass.Services.Implementations
             var users = await _decoratedUserService.GetAllUsersAsync();
             var activeUsers = users.Where(u => u.State == State.Active).ToList();
 
+            _logger.LogInformation("Retrieved {UserCount} users.", activeUsers.Count);
             return activeUsers;
         }
 
@@ -57,9 +65,11 @@ namespace ApiGympass.Services.Implementations
             var user = await _decoratedUserService.GetByIdAsync(userId);
             if (user.State == State.Inactive)
             {
-                return null;
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
             }
 
+            _logger.LogInformation("User retrieved with ID: {UserId}", user.Id);
             return user;
         }
 
@@ -68,12 +78,14 @@ namespace ApiGympass.Services.Implementations
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.State == State.Inactive)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "User not found or deleted." });
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
             }
             
             user.State = State.Inactive;
             var result = await _userManager.UpdateAsync(user);
 
+            _logger.LogInformation("User deleted with ID: {UserId}", user.Id);
             return result;
         }
     }

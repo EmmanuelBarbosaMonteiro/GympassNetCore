@@ -6,7 +6,7 @@ namespace ApiGympass.Data.Dtos
     {
         [Required]
         [StringLength(100)]
-        public string Name { get; set; }
+        public string UserName { get; set; }
 
         [Required]
         [EmailAddress]

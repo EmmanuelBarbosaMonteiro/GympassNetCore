@@ -1,6 +1,7 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
+using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -41,9 +42,8 @@ namespace ApiGympass.Services.Implementations
                 }
                 else
                 {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    _logger.LogWarning($"CreateUser: Failed to create user - {errors}");
-                    return (result, null);
+                    _logger.LogWarning("User already exists.");
+                    throw new UserAlreadyExistsError();
                 }
             }
             catch (Exception e)
@@ -60,13 +60,14 @@ namespace ApiGympass.Services.Implementations
             if (user == null)
             {
                 _logger.LogWarning("Attempted to update a non-existent user.");
-                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+                throw new UserNotFoundError();
             }
 
             _mapper.Map(updateUserDto, user);
 
             var result = await _userManager.UpdateAsync(user);
 
+            _logger.LogInformation("User updated with ID: {UserId}", user.Id);
             return result;
         }
 
@@ -77,7 +78,7 @@ namespace ApiGympass.Services.Implementations
             if (user == null)
             {
                 _logger.LogWarning("Attempted to update a non-existent user.");
-                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+                throw new UserNotFoundError();
             }
 
             var userDto = _mapper.Map<UpdateUserDto>(user);
@@ -88,6 +89,7 @@ namespace ApiGympass.Services.Implementations
 
             var result = await _userManager.UpdateAsync(user);
 
+            _logger.LogInformation("User updated with ID: {UserId}", user.Id);
             return result;
         }
 
@@ -97,9 +99,11 @@ namespace ApiGympass.Services.Implementations
             
             if (user == null)
             {
-                return null;
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
             }
 
+            _logger.LogInformation("User retrieved with ID: {UserId}", user.Id);
             return user == null ? null : _mapper.Map<ReadUserDto>(user);
         }
 
@@ -107,6 +111,7 @@ namespace ApiGympass.Services.Implementations
         {
             var users = await _userRepository.GetAllAsync();
 
+            _logger.LogInformation("Users retrieved.");
             return users.Select(user => _mapper.Map<ReadUserDto>(user)).ToList();
         }
 
@@ -116,11 +121,13 @@ namespace ApiGympass.Services.Implementations
 
             if (user == null)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+                _logger.LogWarning("Attempted to delete a non-existent user.");
+                throw new UserNotFoundError();;
             }
             
             var result = await _userManager.UpdateAsync(user);
             
+            _logger.LogInformation("User deleted with ID: {UserId}", user.Id);
             return result;
         }
     }

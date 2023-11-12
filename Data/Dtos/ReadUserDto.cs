@@ -6,7 +6,7 @@ namespace ApiGympass.Data.Dtos
     {
         public Guid Id { get; }
         public string Email { get; }
-        public string Name { get; }
+        public string UserName { get; }
         public State State { get; set; }
         
 
@@ -14,7 +14,7 @@ namespace ApiGympass.Data.Dtos
         {
             Id = id;
             Email = email;
-            Name = name;
+            UserName = name;
         }
     }
 }

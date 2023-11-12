@@ -8,16 +8,13 @@ namespace ApiGympass.Data.Profiles
     {
         public UserProfile()
         {
-            CreateMap<CreateUserDto, User>()
-            .ForMember(u => u.UserName, opt => opt.MapFrom(dto => dto.Name));
+            CreateMap<CreateUserDto, User>();
 
             CreateMap<UpdateUserDto, User>()
-            .ForMember(u => u.UserName, opt => opt.MapFrom(dto => dto.Name))
-            .ForMember(u => u.UserName, opt => opt.MapFrom(dto => dto.Email))
             .ReverseMap();
 
             CreateMap<User, ReadUserDto>()
-            .ConstructUsing(user => new ReadUserDto(user.Id, user.Email, user.Name));
+            .ConstructUsing(user => new ReadUserDto(user.Id, user.Email, user.UserName));
         }
     }
 }

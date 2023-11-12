@@ -16,7 +16,8 @@ builder.Services.AddDbContext<GympassContext>(options =>
 builder.Services
     .AddIdentity<User, IdentityRole<Guid>>(options =>
     {
-      options.User.AllowedUserNameCharacters = "aãbcdefghijklmnoõpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
+        options.User.AllowedUserNameCharacters = "aãbcdefghijklmnoõpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
+        options.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<GympassContext>()
     .AddDefaultTokenProviders();
