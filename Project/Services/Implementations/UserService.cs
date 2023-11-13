@@ -14,9 +14,9 @@ namespace ApiGympass.Services.Implementations
         private readonly IUserRepository _userRepository;
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
-        private readonly ILogger<CheckInService> _logger;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<CheckInService> logger)
+        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger)
         {
             _userRepository = userRepository;
             _userManager = userManager;
