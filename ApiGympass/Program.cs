@@ -32,6 +32,7 @@ builder.Services.
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 builder.Services.AddScoped<IGymRepository, GymRepository>();
+builder.Services.AddScoped<TokenService>();
 
 // Services
 builder.Services.AddScoped<IUserService, UserService>();

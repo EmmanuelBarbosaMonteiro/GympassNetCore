@@ -6,7 +6,8 @@ namespace ApiGympass.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<(IdentityResult Result, ReadUserDto ReadUserDto)> CreateUserAsync(CreateUserDto createUserDto);
+        Task<ReadUserDto> CreateUserAsync(CreateUserDto createUserDto);
+        Task<string> LoginUserAsync(LoginUserDto loginUserDto);
         Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto);
         Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument);
         Task<ReadUserDto> GetByIdAsync(Guid userId);

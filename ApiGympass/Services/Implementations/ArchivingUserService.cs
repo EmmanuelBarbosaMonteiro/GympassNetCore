@@ -20,7 +20,7 @@ namespace ApiGympass.Services.Implementations
             _logger = logger;
         }
 
-        public async Task<(IdentityResult Result, ReadUserDto ReadUserDto)> CreateUserAsync(CreateUserDto createUserDto)
+        public async Task<ReadUserDto> CreateUserAsync(CreateUserDto createUserDto)
         {
             return await _decoratedUserService.CreateUserAsync(createUserDto);
         }
@@ -36,6 +36,19 @@ namespace ApiGympass.Services.Implementations
 
             _logger.LogInformation("User updated with ID: {UserId}", user.Id);
             return await _decoratedUserService.UpdateUserAsync(userId, updateUserDto);
+        }
+
+        public async Task<string> LoginUserAsync(LoginUserDto loginUserDto)
+        {
+            var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
+            if (user == null || user.State == State.Inactive)
+            {
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
+            }
+
+            _logger.LogInformation("User logged in with ID: {UserId}", user.Id);
+            return await _decoratedUserService.LoginUserAsync(loginUserDto);
         }
 
         public async Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument)

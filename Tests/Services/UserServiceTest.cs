@@ -9,6 +9,8 @@ using ApiGympass.Models;
 using Microsoft.Extensions.Options;
 using Tests.TestData.Builders;
 using Tests.TestData.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
 
 namespace ApiGympass.Tests
 {
@@ -16,6 +18,7 @@ namespace ApiGympass.Tests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock = new Mock<IUserRepository>();
         private readonly Mock<UserManager<User>> _userManagerMock;
+        private readonly Mock<SignInManager<User>> _signInManagerMock;
         private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
         private readonly Mock<ILogger<UserService>> _loggerMock = new Mock<ILogger<UserService>>();
         private readonly UserService _userService;
@@ -23,11 +26,13 @@ namespace ApiGympass.Tests
         public UserServiceTests()
         {
             _userManagerMock = CreateMockUserManager();
+            _signInManagerMock = CreateMockSignInManager();
             _userService = new UserService(
                 _userRepositoryMock.Object, 
                 _userManagerMock.Object, 
                 _mapperMock.Object, 
-                _loggerMock.Object);
+                _loggerMock.Object,
+                _signInManagerMock.Object);
         }
 
         [Fact]
@@ -38,10 +43,9 @@ namespace ApiGympass.Tests
             SetupMocksForCreateUser(testData);
 
             // Act
-            var (result, returnedReadUserDto) = await _userService.CreateUserAsync(testData.CreateUserDto);
+            var returnedReadUserDto = await _userService.CreateUserAsync(testData.CreateUserDto);
 
             // Assert
-            Assert.True(result.Succeeded);
             Assert.Equal(testData.ReadUserDto, returnedReadUserDto);
             _userManagerMock.Verify(um => um.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
             _mapperMock.Verify(m => m.Map<ReadUserDto>(It.IsAny<User>()), Times.Once);
@@ -61,6 +65,21 @@ namespace ApiGympass.Tests
                 new Mock<ILogger<UserManager<User>>>().Object);
         }
 
+         private Mock<SignInManager<User>> CreateMockSignInManager()
+        {
+            var contextAccessorMock = new Mock<IHttpContextAccessor>();
+            var userPrincipalFactoryMock = new Mock<IUserClaimsPrincipalFactory<User>>();
+
+            return new Mock<SignInManager<User>>(
+                _userManagerMock.Object,
+                contextAccessorMock.Object,
+                userPrincipalFactoryMock.Object,
+                new Mock<IOptions<IdentityOptions>>().Object,
+                new Mock<ILogger<SignInManager<User>>>().Object,
+                new Mock<IAuthenticationSchemeProvider>().Object,
+                null);
+        }
+        
         private void SetupMocksForCreateUser(UserTestData testData)
         {
             _mapperMock.Setup(m => m.Map<User>(It.IsAny<CreateUserDto>())).Returns(testData.User);

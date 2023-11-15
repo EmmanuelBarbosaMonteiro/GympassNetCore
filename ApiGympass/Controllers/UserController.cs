@@ -3,6 +3,7 @@ using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
 using ApiGympass.Services.ErrorHandling;
+using Project.Services.ErrorHandling;
 
 namespace ApiGympass.Controllers
 {
@@ -30,7 +31,7 @@ namespace ApiGympass.Controllers
 
             try
             {
-                var (result, user) = await _userService.CreateUserAsync(dto);
+                var user = await _userService.CreateUserAsync(dto);
                 _logger.LogInformation("User created successfully with ID: {UserId}", user.Id);
                 return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
             }
@@ -42,6 +43,38 @@ namespace ApiGympass.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected exception in CreateUser");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> LoginUser([FromBody] LoginUserDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for LoginUser");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var token = await _userService.LoginUserAsync(dto);
+                _logger.LogInformation("User logged in successfully");
+                return Ok(token);
+            }
+            catch (InvalidCredentialsError ex)
+            {
+                _logger.LogWarning(ex, "Invalid credentials");
+                return Unauthorized(ex.Message);
+            }
+            catch (UserNotFoundError ex)
+            {
+                _logger.LogWarning(ex, "User not found");
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected exception in LoginUser");
                 return StatusCode(500, "An internal server error occurred.");
             }
         }

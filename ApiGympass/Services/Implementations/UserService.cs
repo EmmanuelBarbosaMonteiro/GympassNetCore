@@ -6,6 +6,7 @@ using ApiGympass.Services.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
+using Project.Services.ErrorHandling;
 
 namespace ApiGympass.Services.Implementations
 {
@@ -15,16 +16,20 @@ namespace ApiGympass.Services.Implementations
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
+        private readonly SignInManager<User> _signInManager;
+        private readonly TokenService _tokenService;
 
-        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger)
+        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger, SignInManager<User> signInManager, TokenService tokenService)
         {
             _userRepository = userRepository;
             _userManager = userManager;
             _mapper = mapper;
             _logger = logger;
+            _signInManager = signInManager;
+            _tokenService = tokenService;
         }
 
-        public async Task<(IdentityResult Result, ReadUserDto ReadUserDto)> CreateUserAsync(CreateUserDto createUserDto)
+        public async Task<ReadUserDto> CreateUserAsync(CreateUserDto createUserDto)
         {
             var user = _mapper.Map<User>(createUserDto);
 
@@ -35,10 +40,9 @@ namespace ApiGympass.Services.Implementations
                 if (result.Succeeded)
                 {
                     var readUserDto = _mapper.Map<ReadUserDto>(user);
-
                     _logger.LogInformation("User created with ID: {UserId}", user.Id);
-
-                    return (result, readUserDto);
+                    _tokenService.GenerateToken(user);
+                    return readUserDto;
                 }
                 else
                 {
@@ -49,6 +53,32 @@ namespace ApiGympass.Services.Implementations
             catch (Exception e)
             {
                 _logger.LogError(e, "Error occurred while creating user.");
+                throw;
+            }
+        }
+
+        public async Task<string> LoginUserAsync(LoginUserDto loginUserDto)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, loginUserDto.Password, false, false);
+
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("User logged in with ID: {UserId}", user.Id);
+                    var token = _tokenService.GenerateToken(user);
+                    return token;
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid credentials.");
+                    throw new InvalidCredentialsError();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred while logging in user.");
                 throw;
             }
         }
@@ -122,7 +152,7 @@ namespace ApiGympass.Services.Implementations
             if (user == null)
             {
                 _logger.LogWarning("Attempted to delete a non-existent user.");
-                throw new UserNotFoundError();;
+                throw new UserNotFoundError();
             }
             
             var result = await _userManager.UpdateAsync(user);
