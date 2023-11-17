@@ -11,6 +11,7 @@ using Tests.TestData.Builders;
 using Tests.TestData.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication;
+using ApiGympass.Services.ErrorHandling;
 
 namespace ApiGympass.Tests
 {
@@ -22,6 +23,7 @@ namespace ApiGympass.Tests
         private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
         private readonly Mock<ILogger<UserService>> _loggerMock = new Mock<ILogger<UserService>>();
         private readonly UserService _userService;
+        private readonly Mock<TokenService> _tokenServiceMock = new Mock<TokenService>();
 
         public UserServiceTests()
         {
@@ -32,7 +34,8 @@ namespace ApiGympass.Tests
                 _userManagerMock.Object, 
                 _mapperMock.Object, 
                 _loggerMock.Object,
-                _signInManagerMock.Object);
+                _signInManagerMock.Object,
+                _tokenServiceMock.Object);
         }
 
         [Fact]
@@ -49,6 +52,21 @@ namespace ApiGympass.Tests
             Assert.Equal(testData.ReadUserDto, returnedReadUserDto);
             _userManagerMock.Verify(um => um.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
             _mapperMock.Verify(m => m.Map<ReadUserDto>(It.IsAny<User>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateUserAsync_WithEmailAlreadyExists_ShouldThrowUserAlreadyExistsError()
+        {
+            // Arrange
+            var testData = new UserDataBuilder().WithEmail("existingemail@example.com").Build();
+            SetupMocksForEmailAlreadyExists(testData);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UserAlreadyExistsError>(() => 
+                _userService.CreateUserAsync(testData.CreateUserDto));
+
+            Assert.NotNull(exception);
+            _userManagerMock.Verify(um => um.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         }
 
         private Mock<UserManager<User>> CreateMockUserManager()
@@ -86,6 +104,15 @@ namespace ApiGympass.Tests
             _userManagerMock.Setup(um => um.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
                             .ReturnsAsync(IdentityResult.Success);
             _mapperMock.Setup(m => m.Map<ReadUserDto>(It.IsAny<User>())).Returns(testData.ReadUserDto);
+        }
+
+        private void SetupMocksForEmailAlreadyExists(UserTestData testData)
+        {
+            _userManagerMock.Setup(um => um.FindByEmailAsync(testData.CreateUserDto.Email))
+                            .ReturnsAsync(testData.User); // Simula um usuário existente com o mesmo e-mail
+
+            _userManagerMock.Setup(um => um.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+                            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Email already exists" }));
         }
     }
 }

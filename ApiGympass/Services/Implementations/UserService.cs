@@ -31,10 +31,9 @@ namespace ApiGympass.Services.Implementations
 
         public async Task<ReadUserDto> CreateUserAsync(CreateUserDto createUserDto)
         {
-            var user = _mapper.Map<User>(createUserDto);
-
             try
             {
+                var user = _mapper.Map<User>(createUserDto);
                 var result = await _userManager.CreateAsync(user, createUserDto.Password);
 
                 if (result.Succeeded)
@@ -85,18 +84,10 @@ namespace ApiGympass.Services.Implementations
 
         public async Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)
         {
+            
             var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-            {
-                _logger.LogWarning("Attempted to update a non-existent user.");
-                throw new UserNotFoundError();
-            }
-
             _mapper.Map(updateUserDto, user);
-
             var result = await _userManager.UpdateAsync(user);
-
             _logger.LogInformation("User updated with ID: {UserId}", user.Id);
             return result;
         }
@@ -104,12 +95,6 @@ namespace ApiGympass.Services.Implementations
         public async Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument)
         {
             var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-            {
-                _logger.LogWarning("Attempted to update a non-existent user.");
-                throw new UserNotFoundError();
-            }
 
             var userDto = _mapper.Map<UpdateUserDto>(user);
 
@@ -126,15 +111,9 @@ namespace ApiGympass.Services.Implementations
         public async Task<ReadUserDto> GetByIdAsync(Guid userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            
-            if (user == null)
-            {
-                _logger.LogWarning("Attempted to get a non-existent user.");
-                throw new UserNotFoundError();
-            }
-
-            _logger.LogInformation("User retrieved with ID: {UserId}", user.Id);
-            return user == null ? null : _mapper.Map<ReadUserDto>(user);
+            var readUserDto = _mapper.Map<ReadUserDto>(user);
+            _logger.LogInformation("User retrieved with ID: {UserId}", readUserDto.Id);
+            return readUserDto;
         }
 
         public async Task<IEnumerable<ReadUserDto>> GetAllUsersAsync()
@@ -148,15 +127,7 @@ namespace ApiGympass.Services.Implementations
         public async Task<IdentityResult> DeleteUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-
-            if (user == null)
-            {
-                _logger.LogWarning("Attempted to delete a non-existent user.");
-                throw new UserNotFoundError();
-            }
-            
             var result = await _userManager.UpdateAsync(user);
-            
             _logger.LogInformation("User deleted with ID: {UserId}", user.Id);
             return result;
         }

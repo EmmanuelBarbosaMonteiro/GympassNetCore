@@ -7,17 +7,21 @@ namespace Tests.TestData.Builders
 {
     public class UserDataBuilder
     {
-        public UserTestData Build()
+        private CreateUserDto _createUserDto;
+        private User _user;
+        private ReadUserDto _readUserDto;
+
+        public UserDataBuilder()
         {
             var faker = new Faker();
-            var createUserDto = new CreateUserDto 
+            _createUserDto = new CreateUserDto 
             {
                 UserName = faker.Name.FullName(),
                 Email = faker.Internet.Email(),
                 Password = faker.Internet.Password()
             };
 
-            var user = new User 
+            _user = new User 
             { 
                 UserName = faker.Internet.UserName(),
                 Email = faker.Internet.Email(),
@@ -26,17 +30,36 @@ namespace Tests.TestData.Builders
                 CreatedAt = DateTime.UtcNow
             };
 
-            var readUserDto = new ReadUserDto(
+            _readUserDto = new ReadUserDto(
                 Guid.NewGuid(),
-                user.Email,
-                user.UserName
+                _user.Email,
+                _user.UserName
             );
+        }
 
+        public UserDataBuilder WithEmail(string email)
+        {
+            _createUserDto.Email = email;
+            _user.Email = email;
+            _readUserDto.Email = email;
+            return this;
+        }
+
+        public UserDataBuilder WithUserName(string userName)
+        {
+            _createUserDto.UserName = userName;
+            _user.UserName = userName;
+            _readUserDto.UserName = userName;
+            return this;
+        }
+
+        public UserTestData Build()
+        {
             return new UserTestData
             {
-                CreateUserDto = createUserDto,
-                User = user,
-                ReadUserDto = readUserDto
+                CreateUserDto = _createUserDto,
+                User = _user,
+                ReadUserDto = _readUserDto
             };
         }
     }

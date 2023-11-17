@@ -4,9 +4,9 @@ namespace ApiGympass.Data.Dtos
 {
     public class ReadUserDto
     {
-        public Guid Id { get; }
-        public string Email { get; }
-        public string UserName { get; }
+        public Guid Id { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
         public State State { get; set; }
         
 

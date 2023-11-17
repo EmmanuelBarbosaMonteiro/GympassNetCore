@@ -28,6 +28,12 @@ builder.Services.
 
 // Services and Repositories for DI
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim("Admin"));
+    options.AddPolicy("User", policy => policy.RequireClaim("User"));
+});
+
 // Repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();

@@ -4,6 +4,7 @@ using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ApiGympass.Services.Implementations
 {
@@ -25,19 +26,6 @@ namespace ApiGympass.Services.Implementations
             return await _decoratedUserService.CreateUserAsync(createUserDto);
         }
 
-        public async Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null || user.State == State.Inactive)
-            {
-                _logger.LogWarning("Attempted to get a non-existent user.");
-                throw new UserNotFoundError();
-            }
-
-            _logger.LogInformation("User updated with ID: {UserId}", user.Id);
-            return await _decoratedUserService.UpdateUserAsync(userId, updateUserDto);
-        }
-
         public async Task<string> LoginUserAsync(LoginUserDto loginUserDto)
         {
             var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
@@ -49,6 +37,19 @@ namespace ApiGympass.Services.Implementations
 
             _logger.LogInformation("User logged in with ID: {UserId}", user.Id);
             return await _decoratedUserService.LoginUserAsync(loginUserDto);
+        }
+
+        public async Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null || user.State == State.Inactive)
+            {
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new UserNotFoundError();
+            }
+
+            _logger.LogInformation("User updated with ID: {UserId}", user.Id);
+            return await _decoratedUserService.UpdateUserAsync(userId, updateUserDto);
         }
 
         public async Task<IdentityResult> PatchUserAsync(string userId, JsonPatchDocument<UpdateUserDto> patchDocument)
@@ -75,15 +76,15 @@ namespace ApiGympass.Services.Implementations
 
         public async Task<ReadUserDto> GetByIdAsync(Guid userId)
         {
-            var user = await _decoratedUserService.GetByIdAsync(userId);
-            if (user.State == State.Inactive)
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null || user.State == State.Inactive) 
             {
                 _logger.LogWarning("Attempted to get a non-existent user.");
                 throw new UserNotFoundError();
             }
 
             _logger.LogInformation("User retrieved with ID: {UserId}", user.Id);
-            return user;
+            return await _decoratedUserService.GetByIdAsync(userId);
         }
 
         public async Task<IdentityResult> DeleteUserAsync(string userId)

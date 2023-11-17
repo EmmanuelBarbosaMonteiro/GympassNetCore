@@ -15,7 +15,7 @@ namespace ApiGympass.Data.Repositories.Implementations
 
         public async Task<User> GetByIdAsync(Guid userId)
         {
-            return await _context.Users.FindAsync(userId);
+            return await _context.Users.SingleOrDefaultAsync(u => u.Id == userId);
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
