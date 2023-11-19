@@ -1,3 +1,4 @@
+
 using ApiGympass.Data.Dtos;
 using ApiGympass.Models;
 using Bogus;
@@ -10,6 +11,8 @@ namespace Tests.TestData.Builders
         private CreateUserDto _createUserDto;
         private User _user;
         private ReadUserDto _readUserDto;
+        private LoginUserDto _loginUserDto;
+
 
         public UserDataBuilder()
         {
@@ -35,6 +38,12 @@ namespace Tests.TestData.Builders
                 _user.Email,
                 _user.UserName
             );
+
+            _loginUserDto = new LoginUserDto
+            {
+                Email = _user.Email,
+                Password = "Password@123"
+            };
         }
 
         public UserDataBuilder WithEmail(string email)
@@ -53,13 +62,21 @@ namespace Tests.TestData.Builders
             return this;
         }
 
+        public UserDataBuilder WithLoginCredentials(string email, string password)
+        {
+            _loginUserDto.Email = email;
+            _loginUserDto.Password = password;
+            return this;
+        }
+
         public UserTestData Build()
         {
             return new UserTestData
             {
                 CreateUserDto = _createUserDto,
                 User = _user,
-                ReadUserDto = _readUserDto
+                ReadUserDto = _readUserDto,
+                LoginUserDto = _loginUserDto
             };
         }
     }

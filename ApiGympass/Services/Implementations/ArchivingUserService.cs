@@ -5,6 +5,7 @@ using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Project.Services.ErrorHandling;
 
 namespace ApiGympass.Services.Implementations
 {
@@ -32,7 +33,7 @@ namespace ApiGympass.Services.Implementations
             if (user == null || user.State == State.Inactive)
             {
                 _logger.LogWarning("Attempted to get a non-existent user.");
-                throw new UserNotFoundError();
+                throw new InvalidCredentialsError();
             }
 
             _logger.LogInformation("User logged in with ID: {UserId}", user.Id);

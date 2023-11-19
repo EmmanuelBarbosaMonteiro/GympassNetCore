@@ -8,5 +8,6 @@ namespace Tests.TestData.Models
         public CreateUserDto CreateUserDto { get; set; }
         public User User { get; set; }
         public ReadUserDto ReadUserDto { get; set; }
+        public LoginUserDto LoginUserDto { get; set; }
     }
 }

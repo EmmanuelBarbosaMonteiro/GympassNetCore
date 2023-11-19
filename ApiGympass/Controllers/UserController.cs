@@ -67,11 +67,6 @@ namespace ApiGympass.Controllers
                 _logger.LogWarning(ex, "Invalid credentials");
                 return Unauthorized(ex.Message);
             }
-            catch (UserNotFoundError ex)
-            {
-                _logger.LogWarning(ex, "User not found");
-                return NotFound(ex.Message);
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected exception in LoginUser");
