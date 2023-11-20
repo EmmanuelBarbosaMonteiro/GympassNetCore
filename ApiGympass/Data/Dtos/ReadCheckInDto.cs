@@ -2,10 +2,19 @@ namespace ApiGympass.Data.Dtos
 {
     public class ReadCheckInDto
     {
-        public Guid Id { get;} 
-        public DateTime CreatedAt { get; }
-        public DateTime ValidateAt { get; }
-        public Guid UserId { get; }
-        public Guid GymId { get; }
+        public Guid Id { get; set;} 
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ValidateAt { get; set; }
+        public Guid UserId { get; set; }
+        public Guid GymId { get; set; }
+
+        public ReadCheckInDto(Guid id, Guid userId, Guid gymId, DateTime? validateAt, DateTime createdAt)
+        {
+            Id = id;
+            UserId = userId;
+            GymId = gymId;
+            ValidateAt = validateAt;
+            CreatedAt = createdAt;
+        }
     }
 }

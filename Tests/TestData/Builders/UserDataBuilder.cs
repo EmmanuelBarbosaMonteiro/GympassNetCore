@@ -13,7 +13,6 @@ namespace Tests.TestData.Builders
         private ReadUserDto _readUserDto;
         private LoginUserDto _loginUserDto;
 
-
         public UserDataBuilder()
         {
             var faker = new Faker();
