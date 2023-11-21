@@ -7,5 +7,6 @@ namespace ApiGympass.Data.Repositories.Interfaces
     {
         Task<CheckIn> CreateCheckInAsync(CheckIn checkIn);
         Task<CheckIn> GetCheckInByIdAsync(Guid checkInId);
+        Task<CheckIn?> FindByUserIdOnDate(Guid userId, DateTime date);
     }
 }

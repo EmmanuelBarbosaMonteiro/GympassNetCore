@@ -14,27 +14,43 @@ namespace Tests.TestData.Builders
         public CheckInDataBuilder()
         {
             var faker = new Faker();
+            var userId = Guid.NewGuid();
+            var gymId = Guid.NewGuid();
+
             _createCheckInDto = new CreateCheckInDto
             {
-                UserId = Guid.NewGuid(),
-                GymId = Guid.NewGuid()
+                UserId = userId,
+                GymId = gymId,
             };
 
             _checkIn = new CheckIn
             {
-                UserId = Guid.NewGuid(),
-                GymId = Guid.NewGuid(),
+                UserId = userId,
+                GymId = gymId,
                 ValidateAt = null,
                 CreatedAt = DateTime.UtcNow
             };
 
             _readCheckInDto = new ReadCheckInDto(
                 Guid.NewGuid(),
-                _checkIn.UserId ?? Guid.NewGuid(),
-                _checkIn.GymId ?? Guid.NewGuid(),
+                userId,
+                gymId,
                 _checkIn.ValidateAt,
                 _checkIn.CreatedAt
             );
+        }
+
+         public CheckInDataBuilder WithCheckInDate(DateTime date)
+        {
+            _checkIn.CreatedAt = date;
+            return this;
+        }
+
+        public CheckInTestData BuildForSameDay()
+        {
+            var date = DateTime.UtcNow;
+            _checkIn.CreatedAt = date;
+            return Build();
         }
 
         public CheckInTestData Build()

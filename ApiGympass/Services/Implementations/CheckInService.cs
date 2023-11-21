@@ -28,6 +28,14 @@ namespace ApiGympass.Services.Implementations
             {
                 var user = await _userService.GetByIdAsync(createCheckInDto.UserId);
                 var checkIn = _mapper.Map<CheckIn>(createCheckInDto);
+
+                var existingCheckIn = await _checkInRepository.FindByUserIdOnDate(createCheckInDto.UserId, createCheckInDto.CreatedAt);
+                if (existingCheckIn != null)
+                {
+                    _logger.LogWarning("Check-in already exists for user with ID: {UserId} on date: {Date}", createCheckInDto.UserId, checkIn.CreatedAt);
+                    throw new CheckInLimitExceeded();
+                }
+
                 await _checkInRepository.CreateCheckInAsync(checkIn);
                 var readCheckInDto = _mapper.Map<ReadCheckInDto>(checkIn);
                 _logger.LogInformation("CheckIn created with ID: {CheckInId}", checkIn.Id);

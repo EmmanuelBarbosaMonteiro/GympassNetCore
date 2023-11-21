@@ -8,5 +8,6 @@ namespace Tests.TestData.Models
         public CreateCheckInDto CreateCheckInDto { get; set; }
         public CheckIn CheckIn { get; set; }
         public ReadCheckInDto ReadCheckInDto { get; set; }
+        public UserTestData UserTestData { get; set; }
     }
 }
