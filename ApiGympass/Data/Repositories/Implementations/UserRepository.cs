@@ -13,7 +13,7 @@ namespace ApiGympass.Data.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<User> GetByIdAsync(Guid userId)
+        public async Task<User?> FindById(Guid userId)
         {
             return await _context.Users.SingleOrDefaultAsync(u => u.Id == userId);
         }

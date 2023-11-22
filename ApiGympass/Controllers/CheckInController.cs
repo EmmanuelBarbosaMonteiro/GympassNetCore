@@ -29,9 +29,13 @@ namespace ApiGympass.Controllers
             try
             {
                 var readCheckInDto  = await _checkInService.CreateCheckInAsync(createCheckInDto);
-
                 _logger.LogInformation("Check-in created successfully with ID: {CheckInId}", readCheckInDto .Id);
                 return new ObjectResult(readCheckInDto) { StatusCode = StatusCodes.Status201Created };
+            }
+            catch (GymNotFoundError ex)
+            {
+                _logger.LogWarning(ex, "Gym not found while creating check-in.");
+                return NotFound(ex.Message);
             }
             catch (UserNotFoundError ex)
             {
@@ -56,7 +60,7 @@ namespace ApiGympass.Controllers
             try
             {
                 var checkIn = await _checkInService.GetCheckInByIdAsync(id);
-                _logger.LogInformation("Check-in retrieved successfully with ID: {CheckInId}", checkIn.Id);
+                _logger.LogInformation("Check-in retrieved successfully with ID: {CheckInId}", checkIn?.Id);
                 return Ok(checkIn);
             }
             catch (CheckInNotFoundError ex)

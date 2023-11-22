@@ -133,7 +133,7 @@ namespace ApiGympass.Tests
             var testData = userDataBuilder.Build();
             var userId = testData.User.Id;
 
-            _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(testData.User);
+            _userRepositoryMock.Setup(repo => repo.FindById(userId)).ReturnsAsync(testData.User);
             _mapperMock.Setup(mapper => mapper.Map<ReadUserDto>(testData.User)).Returns(testData.ReadUserDto);
 
             // Act
@@ -142,7 +142,7 @@ namespace ApiGympass.Tests
             // Assert
             Assert.NotNull(returnedReadUserDto);
             Assert.Equal(testData.ReadUserDto, returnedReadUserDto);
-            _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
+            _userRepositoryMock.Verify(repo => repo.FindById(userId), Times.Once);
             _mapperMock.Verify(mapper => mapper.Map<ReadUserDto>(testData.User), Times.Once);
         }
 

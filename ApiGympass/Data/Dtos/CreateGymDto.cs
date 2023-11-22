@@ -6,17 +6,15 @@ namespace ApiGympass.Data.Dtos
     {
         [Required]
         [StringLength(100)]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [Required]
         public decimal? Latitude { get; set; }
 
         [Required]
         public decimal? Longitude { get; set; }
-
-        #nullable enable
+        
         public string? Description { get; set; }
         public string? Phone { get; set; }
-        #nullable disable
     }
 }

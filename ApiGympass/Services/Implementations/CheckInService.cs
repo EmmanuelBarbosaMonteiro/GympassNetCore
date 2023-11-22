@@ -12,13 +12,15 @@ namespace ApiGympass.Services.Implementations
         private readonly ICheckInRepository _checkInRepository;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
+        private readonly IGymService _gymService;
         private readonly ILogger<CheckInService> _logger;
 
-        public CheckInService(ICheckInRepository checkInRepository, IMapper mapper, IUserService userService, ILogger<CheckInService> logger)
+        public CheckInService(ICheckInRepository checkInRepository, IMapper mapper, IUserService userService, IGymService gymService, ILogger<CheckInService> logger)
         {
             _checkInRepository = checkInRepository;
             _mapper = mapper;
             _userService = userService;
+            _gymService = gymService;
             _logger = logger;
         }
 
@@ -26,10 +28,17 @@ namespace ApiGympass.Services.Implementations
         {
             try
             {
+                var gym = await _gymService.FindById(createCheckInDto.GymId);
+                if (gym == null)
+                {
+                    _logger.LogWarning("No gym found with ID: {GymId}", createCheckInDto.GymId);
+                    throw new GymNotFoundError();
+                }
+                
                 var user = await _userService.GetByIdAsync(createCheckInDto.UserId);
                 var checkIn = _mapper.Map<CheckIn>(createCheckInDto);
 
-                var existingCheckIn = await _checkInRepository.FindByUserIdOnDate(createCheckInDto.UserId, checkIn.CreatedAt);
+                var existingCheckIn = await _checkInRepository.FindByUserIdOnDate(checkIn.UserId ?? Guid.Empty, checkIn.CreatedAt);
                 if (existingCheckIn != null)
                 {
                     _logger.LogWarning("Check-in already exists for user with ID: {UserId} on date: {Date}", createCheckInDto.UserId, checkIn.CreatedAt);
@@ -49,12 +58,12 @@ namespace ApiGympass.Services.Implementations
             }
         }
 
-        public async Task<ReadCheckInDto> GetCheckInByIdAsync(Guid checkInId)
+        public async Task<ReadCheckInDto?> GetCheckInByIdAsync(Guid checkInId)
         {
 
             try
             {
-                var checkIn = await _checkInRepository.GetCheckInByIdAsync(checkInId);
+                var checkIn = await _checkInRepository.FindById(checkInId);
                 if (checkIn == null)
                 {
                     _logger.LogWarning("No check-in found with ID: {CheckInId}", checkInId);

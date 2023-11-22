@@ -108,9 +108,9 @@ namespace ApiGympass.Services.Implementations
             return result;
         }
 
-        public async Task<ReadUserDto> GetByIdAsync(Guid userId)
+        public async Task<ReadUserDto?> GetByIdAsync(Guid userId)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _userRepository.FindById(userId);
             var readUserDto = _mapper.Map<ReadUserDto>(user);
             _logger.LogInformation("User retrieved with ID: {UserId}", readUserDto.Id);
             return readUserDto;

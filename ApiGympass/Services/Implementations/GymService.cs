@@ -3,6 +3,7 @@ using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
 using AutoMapper;
 using ApiGympass.Services.Interfaces;
+using ApiGympass.Services.ErrorHandling;
 
 namespace ApiGympass.Services.Implementations
 {
@@ -20,7 +21,7 @@ namespace ApiGympass.Services.Implementations
             _logger = logger;
         }
         
-        public async Task<Gym> CreateGymAsync(CreateGymDto gymDto)
+        public async Task<ReadGymDto> CreateGymAsync(CreateGymDto gymDto)
         {
            if (gymDto == null)
             {
@@ -34,9 +35,11 @@ namespace ApiGympass.Services.Implementations
 
                 await _gymRepository.CreateGymAsync(gym);
 
+                var readGymDto = _mapper.Map<ReadGymDto>(gym);
+
                 _logger.LogInformation("Gym created with ID: {GymId}", gym.Id);
                 
-                return gym;
+                return readGymDto;
             }
             catch (Exception e)
             {
@@ -45,21 +48,20 @@ namespace ApiGympass.Services.Implementations
             }
         }
 
-        public async Task<Gym> GetGymByIdAsync(Guid gymId)
+        public async Task<ReadGymDto?> FindById(Guid gymId)
         {
             _logger.LogInformation("Retrieving gym with ID: {GymId}", gymId);
 
             try
             {
-                var gym = await _gymRepository.GetGymByIdAsync(gymId);
-
-                if (gym == null)
-                {
-                    _logger.LogWarning("No gym found with ID: {GymId}", gymId);
-                    return null;
-                }
-
-                return gym;
+                var gym = await _gymRepository.FindById(gymId);
+                var readGymDto = _mapper.Map<ReadGymDto>(gym);
+                return readGymDto;
+            }
+            catch (GymNotFoundError)
+            {
+                _logger.LogWarning("No gym found with ID: {GymId}", gymId);
+                throw new GymNotFoundError();
             }
             catch (Exception e)
             {

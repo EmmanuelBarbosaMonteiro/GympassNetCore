@@ -5,7 +5,7 @@ namespace ApiGympass.Services.Interfaces
 {
     public interface IGymService
     {
-        Task<Gym> CreateGymAsync(CreateGymDto gymDto);
-        Task<Gym> GetGymByIdAsync(Guid gymId);
+        Task<ReadGymDto> CreateGymAsync(CreateGymDto gymDto);
+        Task<ReadGymDto?> FindById(Guid gymId);
     }
 }

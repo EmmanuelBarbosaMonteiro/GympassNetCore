@@ -33,7 +33,7 @@ namespace ApiGympass.Controllers
             {
                 var user = await _userService.CreateUserAsync(dto);
                 _logger.LogInformation("User created successfully with ID: {UserId}", user.Id);
-                return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
+                return new ObjectResult(user) { StatusCode = StatusCodes.Status201Created };
             }
             catch (UserAlreadyExistsError ex)
             {
@@ -55,7 +55,6 @@ namespace ApiGympass.Controllers
                 _logger.LogWarning("Invalid model state for LoginUser");
                 return BadRequest(ModelState);
             }
-
             try
             {
                 var token = await _userService.LoginUserAsync(dto);
@@ -152,7 +151,6 @@ namespace ApiGympass.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             var userDtos = await _userService.GetAllUsersAsync();
-
             _logger.LogInformation("Retrieved all users successfully.");
             return Ok(userDtos);
         }

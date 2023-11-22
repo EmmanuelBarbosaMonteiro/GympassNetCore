@@ -12,9 +12,9 @@ namespace ApiGympass.Models
         public DateTime? ValidateAt { get; set; }
 
         public Guid? UserId { get; set; }
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         public Guid? GymId { get; set; }
-        public virtual Gym Gym { get; set; }
+        public virtual Gym? Gym { get; set; }
     }
 }

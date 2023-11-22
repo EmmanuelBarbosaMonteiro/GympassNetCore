@@ -1,4 +1,5 @@
 using ApiGympass.Data.Dtos;
+using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,25 +21,16 @@ namespace ApiGympass.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateGym([FromBody] CreateGymDto gymDto)
         {
-            _logger.LogInformation("Received request to create gym.");
-
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("CreateGym request has invalid model state.");
                 return BadRequest(ModelState);
             }
-
             try
             {
                 var createdGym = await _gymService.CreateGymAsync(gymDto);
-                if (createdGym == null)
-                {
-                    _logger.LogError("Failed to create gym due to null response from service.");
-                    return BadRequest("Failed to create gym.");
-                }
-
                 _logger.LogInformation("Gym created successfully with ID: {GymId}", createdGym.Id);
-                return CreatedAtAction(nameof(GetGymById), new { id = createdGym.Id }, createdGym);
+                return new ObjectResult(createdGym) { StatusCode = StatusCodes.Status201Created };
             }
             catch (Exception e)
             {
@@ -50,18 +42,15 @@ namespace ApiGympass.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetGymById(Guid id)
         {
-            _logger.LogInformation("Received request to get gym with ID: {id}", id);
-
             try
             {
-                var gym = await _gymService.GetGymByIdAsync(id);
-                if (gym == null)
-                {
-                    _logger.LogWarning("No gym found with ID: {id}", id);
-                    return NotFound($"No gym found with ID: {id}");
-                }
-
+                var gym = await _gymService.FindById(id);
                 return Ok(gym);
+            }
+            catch (GymNotFoundError)
+            {
+                _logger.LogWarning("No gym found with ID: {id}", id);
+                return NotFound();
             }
             catch (Exception e)
             {

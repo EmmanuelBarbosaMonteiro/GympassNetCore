@@ -4,7 +4,7 @@ namespace ApiGympass.Data.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User> GetByIdAsync(Guid userId);
+        Task<User?> FindById(Guid userId);
         Task<IEnumerable<User>> GetAllAsync();
     }
 }

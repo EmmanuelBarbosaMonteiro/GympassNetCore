@@ -75,7 +75,7 @@ namespace ApiGympass.Services.Implementations
             return activeUsers;
         }
 
-        public async Task<ReadUserDto> GetByIdAsync(Guid userId)
+        public async Task<ReadUserDto?> GetByIdAsync(Guid userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null || user.State == State.Inactive) 

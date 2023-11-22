@@ -13,7 +13,6 @@ namespace Tests.TestData.Builders
 
         public CheckInDataBuilder()
         {
-            var faker = new Faker();
             var userId = Guid.NewGuid();
             var gymId = Guid.NewGuid();
 

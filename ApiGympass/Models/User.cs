@@ -9,7 +9,7 @@ namespace ApiGympass.Models
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public virtual ICollection<CheckIn> CheckIns { get; set; }
+        public virtual ICollection<CheckIn>? CheckIns { get; set; }
 
         public State State { get; set; } = State.Active;
 

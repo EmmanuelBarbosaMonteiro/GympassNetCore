@@ -10,7 +10,7 @@ namespace ApiGympass.Models
 
         [Required]
         [MaxLength(100)]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [Required]
         public decimal? Latitude { get; set; }
@@ -20,11 +20,9 @@ namespace ApiGympass.Models
 
         public State State { get; set; }
 
-        #nullable enable
         public string? Description {get; set; }        
         public string? Phone { get; set; }
-        #nullable disable
 
-        public virtual ICollection<CheckIn> CheckIns { get; set; }
+        public virtual ICollection<CheckIn>? CheckIns { get; set; }
     }
 }

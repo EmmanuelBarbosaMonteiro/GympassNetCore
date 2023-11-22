@@ -20,7 +20,7 @@ namespace ApiGympass.Data.Repositories.Implementations
             return gym;
         }
 
-        public async Task<Gym> GetGymByIdAsync(Guid gymId)
+        public async Task<Gym?> FindById(Guid gymId)
         {
             return await _context.Gyms.FindAsync(gymId);
         }
