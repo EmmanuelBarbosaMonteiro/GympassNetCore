@@ -19,6 +19,8 @@ namespace Tests.TestData.Builders
             _createCheckInDto = new CreateCheckInDto
             {
                 UserId = userId,
+                UserLatitude = -27.2092052m,
+                UserLongitude = -49.6401091m,
                 GymId = gymId,
             };
 

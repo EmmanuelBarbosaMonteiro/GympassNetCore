@@ -34,6 +34,8 @@ namespace ApiGympass.Services.Implementations
                     _logger.LogWarning("No gym found with ID: {GymId}", createCheckInDto.GymId);
                     throw new GymNotFoundError();
                 }
+
+                // calculate distance between user and gym
                 
                 var user = await _userService.GetByIdAsync(createCheckInDto.UserId);
                 var checkIn = _mapper.Map<CheckIn>(createCheckInDto);
@@ -42,7 +44,7 @@ namespace ApiGympass.Services.Implementations
                 if (existingCheckIn != null)
                 {
                     _logger.LogWarning("Check-in already exists for user with ID: {UserId} on date: {Date}", createCheckInDto.UserId, checkIn.CreatedAt);
-                    throw new CheckInLimitExceeded();
+                    throw new CheckInLimitExceededError();
                 }
 
                 await _checkInRepository.CreateCheckInAsync(checkIn);

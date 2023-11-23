@@ -113,7 +113,7 @@ namespace Tests.Services
                         .ReturnsAsync(new CheckIn());
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<CheckInLimitExceeded>(() => _service.CreateCheckInAsync(checkInTestData.CreateCheckInDto));
+            var exception = await Assert.ThrowsAsync<CheckInLimitExceededError>(() => _service.CreateCheckInAsync(checkInTestData.CreateCheckInDto));
         }
 
         [Fact]
