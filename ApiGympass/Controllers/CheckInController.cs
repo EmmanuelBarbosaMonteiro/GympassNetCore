@@ -42,6 +42,11 @@ namespace ApiGympass.Controllers
                 _logger.LogWarning(ex, "User not found while creating check-in.");
                 return NotFound(ex.Message);
             }
+            catch (CheckInDistanceViolationError ex)
+            {
+                _logger.LogWarning(ex, "Check-in distance violation while creating check-in.");
+                return BadRequest(ex.Message);
+            }
             catch (CheckInLimitExceededError ex)
             {
                 _logger.LogWarning(ex, "Check-in limit exceeded while creating check-in.");

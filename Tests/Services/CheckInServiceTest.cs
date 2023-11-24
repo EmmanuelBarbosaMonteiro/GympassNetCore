@@ -36,16 +36,29 @@ namespace Tests.Services
         public async Task CreateCheckInAsync_WithValidData_ShouldCreateCheckInSuccessfully()
         {
             // Arrange
-            var checkInTestData = _dataBuilder.Build();
+            var checkInTestData = _dataBuilder
+                .WithCloseProximity()
+                .Build();
+
             var userDataBuilder = new UserDataBuilder();
             var userTestData = userDataBuilder.Build();
 
+            
             _mockGymService.Setup(service => service.FindById(checkInTestData.CreateCheckInDto.GymId))
-               .ReturnsAsync(new ReadGymDto());
+                .ReturnsAsync(new ReadGymDto
+                {
+                    Latitude = checkInTestData.CreateCheckInDto.UserLatitude, 
+                    Longitude = checkInTestData.CreateCheckInDto.UserLongitude
+                });
+
             _mockUserService.Setup(service => service.GetByIdAsync(checkInTestData.CreateCheckInDto.UserId))
                             .ReturnsAsync(userTestData.ReadUserDto);
-            _mockMapper.Setup(mapper => mapper.Map<CheckIn>(checkInTestData.CreateCheckInDto)).Returns(checkInTestData.CheckIn);
-            _mockMapper.Setup(mapper => mapper.Map<ReadCheckInDto>(checkInTestData.CheckIn)).Returns(checkInTestData.ReadCheckInDto);
+
+            _mockMapper.Setup(mapper => mapper.Map<CheckIn>(checkInTestData.CreateCheckInDto))
+                    .Returns(checkInTestData.CheckIn);
+
+            _mockMapper.Setup(mapper => mapper.Map<ReadCheckInDto>(checkInTestData.CheckIn))
+                    .Returns(checkInTestData.ReadCheckInDto);
 
             // Act
             var result = await _service.CreateCheckInAsync(checkInTestData.CreateCheckInDto);
@@ -97,15 +110,26 @@ namespace Tests.Services
         {
             // Arrange
             var checkInDate = DateTime.UtcNow;
-            var checkInTestData = _dataBuilder.WithCheckInDate(checkInDate).Build();
+            var checkInTestData = _dataBuilder
+                .WithCloseProximity()
+                .WithCheckInDate(checkInDate)
+                .Build();
+
             var userTestData = new UserDataBuilder().Build();
 
             _mockGymService.Setup(service => service.FindById(checkInTestData.CreateCheckInDto.GymId))
-               .ReturnsAsync(new ReadGymDto());
+            .ReturnsAsync(new ReadGymDto
+            {
+                Latitude = checkInTestData.CreateCheckInDto.UserLatitude, 
+                Longitude = checkInTestData.CreateCheckInDto.UserLongitude
+            });
+
             _mockUserService.Setup(service => service.GetByIdAsync(checkInTestData.CreateCheckInDto.UserId))
                             .ReturnsAsync(userTestData.ReadUserDto);
+
             _mockMapper.Setup(mapper => mapper.Map<CheckIn>(It.IsAny<CreateCheckInDto>()))
                     .Returns<CreateCheckInDto>(dto => new CheckIn { UserId = dto.UserId, GymId = dto.GymId, CreatedAt = checkInDate });
+
             _mockMapper.Setup(mapper => mapper.Map<ReadCheckInDto>(It.IsAny<CheckIn>()))
                     .Returns<CheckIn>(checkIn => new ReadCheckInDto(checkIn.Id, checkIn.UserId ?? Guid.Empty, checkIn.GymId ?? Guid.Empty, checkIn.ValidateAt, checkIn.CreatedAt));
             
@@ -123,16 +147,31 @@ namespace Tests.Services
             var firstDay = DateTime.UtcNow;
             var secondDay = firstDay.AddDays(1);
 
-            var checkInTestDataDay1 = new CheckInDataBuilder().WithCheckInDate(firstDay).Build();
-            var checkInTestDataDay2 = new CheckInDataBuilder().WithCheckInDate(secondDay).Build();
+            var checkInTestDataDay1 = new CheckInDataBuilder()
+                .WithCloseProximity()
+                .WithCheckInDate(firstDay)
+                .Build();
+
+            var checkInTestDataDay2 = new CheckInDataBuilder()
+                .WithCloseProximity()
+                .WithCheckInDate(secondDay)
+                .Build();
+
             var userTestData = new UserDataBuilder().Build();
 
             _mockGymService.Setup(service => service.FindById(It.IsAny<Guid>()))
-               .ReturnsAsync(new ReadGymDto());
+                .ReturnsAsync(new ReadGymDto
+                {
+                    Latitude = checkInTestDataDay1.CreateCheckInDto.UserLatitude, 
+                    Longitude = checkInTestDataDay1.CreateCheckInDto.UserLongitude
+                });
+
             _mockUserService.Setup(service => service.GetByIdAsync(It.IsAny<Guid>()))
                             .ReturnsAsync(userTestData.ReadUserDto);
+
             _mockMapper.Setup(mapper => mapper.Map<CheckIn>(It.IsAny<CreateCheckInDto>()))
                     .Returns<CreateCheckInDto>(dto => new CheckIn { UserId = dto.UserId, GymId = dto.GymId, CreatedAt = dto.CreatedAt });
+
             _mockMapper.Setup(mapper => mapper.Map<ReadCheckInDto>(It.IsAny<CheckIn>()))
                     .Returns<CheckIn>(checkIn => new ReadCheckInDto(checkIn.Id, checkIn.UserId ?? Guid.Empty, checkIn.GymId ?? Guid.Empty, checkIn.ValidateAt, checkIn.CreatedAt));
 
@@ -148,6 +187,35 @@ namespace Tests.Services
             Assert.NotNull(secondCheckInResult);
             Assert.Equal(checkInTestDataDay2.ReadCheckInDto.UserId, secondCheckInResult.UserId);
             Assert.NotEqual(firstCheckInResult.CreatedAt, secondCheckInResult.CreatedAt);
+        }
+
+        [Fact]
+        public async Task CreateCheckInAsync_WhenUserTooFar_ShouldThrowDistanceException()
+        {
+            // Arrange
+            var checkInTestData = _dataBuilder
+                .WithDistantProximity()
+                .Build();
+
+            var userTestData = new UserDataBuilder().Build();
+
+            var gymLatitude = -27.2092052m;
+            var gymLongitude = -49.6401091m;
+
+            _mockGymService.Setup(service => service.FindById(checkInTestData.CreateCheckInDto.GymId))
+                .ReturnsAsync(new ReadGymDto
+                {
+                    Latitude = gymLatitude,
+                    Longitude = gymLongitude
+                });
+
+            _mockUserService.Setup(service => service.GetByIdAsync(checkInTestData.CreateCheckInDto.UserId))
+                            .ReturnsAsync(userTestData.ReadUserDto);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<CheckInDistanceViolationError>(() => _service.CreateCheckInAsync(checkInTestData.CreateCheckInDto));
+
+            Assert.IsType<CheckInDistanceViolationError>(exception);
         }
     }
 

@@ -10,6 +10,7 @@ namespace Tests.TestData.Builders
         private CreateCheckInDto _createCheckInDto;
         private CheckIn _checkIn;
         private ReadCheckInDto _readCheckInDto;
+        private ReadGymDto _readGymDto;
 
         public CheckInDataBuilder()
         {
@@ -39,6 +40,36 @@ namespace Tests.TestData.Builders
                 _checkIn.ValidateAt,
                 _checkIn.CreatedAt
             );
+
+            _readGymDto = new ReadGymDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "Gym Name",
+                Latitude = 0.0m,
+                Longitude = 0.0m
+            };
+        }
+
+        public CheckInDataBuilder WithCloseProximity()
+        {
+            _createCheckInDto.UserLatitude = -27.2100000m;
+            _createCheckInDto.UserLongitude = -49.6500000m;
+
+            _readGymDto.Latitude = _createCheckInDto.UserLatitude;
+            _readGymDto.Longitude = _createCheckInDto.UserLongitude;
+
+            return this;
+        }
+
+        public CheckInDataBuilder WithDistantProximity()
+        {
+            _createCheckInDto.UserLatitude = -27.2100000m;
+            _createCheckInDto.UserLongitude = -49.6500000m;
+
+            _readGymDto.Latitude = -27.2092052m;
+            _readGymDto.Longitude = -49.6401091m;
+            
+            return this;
         }
 
          public CheckInDataBuilder WithCheckInDate(DateTime date)

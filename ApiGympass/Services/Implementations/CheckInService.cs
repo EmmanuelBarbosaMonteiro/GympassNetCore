@@ -3,6 +3,7 @@ using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
 using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
+using ApiGympass.Utils;
 using AutoMapper;
 
 namespace ApiGympass.Services.Implementations
@@ -34,9 +35,28 @@ namespace ApiGympass.Services.Implementations
                     _logger.LogWarning("No gym found with ID: {GymId}", createCheckInDto.GymId);
                     throw new GymNotFoundError();
                 }
-
-                // calculate distance between user and gym
                 
+                var userCoordinates = new Coordinate
+                {
+                    Latitude = createCheckInDto.UserLatitude.HasValue ? (double)createCheckInDto.UserLatitude : 0.0,
+                    Longitude = createCheckInDto.UserLongitude.HasValue ? (double)createCheckInDto.UserLongitude : 0.0
+                };
+                var gymCoordinates = new Coordinate
+                {
+                    Latitude = gym.Latitude.HasValue ? (double)gym.Latitude : 0.0,
+                    Longitude = gym.Longitude.HasValue ? (double)gym.Longitude : 0.0
+                };
+
+                double distance = GetDistanceBetweenCoordinates.Calculate(userCoordinates, gymCoordinates);
+
+                const double MAX_DISTANCE_IN_KILOMETERS = 0.100;
+
+                if (distance > MAX_DISTANCE_IN_KILOMETERS)
+                {
+                    _logger.LogWarning("User with ID: {UserId} tried to check-in at gym with ID: {GymId} but was too far away.", createCheckInDto.UserId, createCheckInDto.GymId);
+                    throw new CheckInDistanceViolationError();
+                }
+
                 var user = await _userService.GetByIdAsync(createCheckInDto.UserId);
                 var checkIn = _mapper.Map<CheckIn>(createCheckInDto);
 
