@@ -79,5 +79,37 @@ namespace ApiGympass.Controllers
                 return StatusCode(500, "An error occurred while retrieving the check-in.");
             }
         }
+
+        [HttpGet("CheckIns/{userId}")]
+        public async Task<IActionResult> GetCheckInsByUserIdAsync(Guid userId, [FromQuery] int page = 1)
+        {
+            try
+            {
+                var (checkIns, hasNextPage) = await _checkInService.GetCheckInsByUserIdAsync(userId, page);
+
+                if (hasNextPage)
+                {
+                    Response.Headers.Add("X-HasMorePages", "true");
+                    Response.Headers.Add("X-NextPage", $"{Request.Path}?page={page + 1}");
+                }
+                else
+                {
+                    Response.Headers.Add("X-HasMorePages", "false");
+                }
+
+                _logger.LogInformation("Check-ins retrieved successfully for user with ID: {UserId}", userId);
+                return Ok(checkIns);
+            }
+            catch (UserNotFoundError ex)
+            {
+                _logger.LogWarning(ex, "User not found while retrieving check-ins.");
+                return NotFound(ex.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception occurred while retrieving check-ins.");
+                return StatusCode(500, "An error occurred while retrieving the check-ins.");
+            }
+        }
     }
 }

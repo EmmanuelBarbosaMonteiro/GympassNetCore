@@ -10,6 +10,7 @@ namespace Tests.TestData.Builders
         private CreateCheckInDto _createCheckInDto;
         private CheckIn _checkIn;
         private ReadCheckInDto _readCheckInDto;
+        private List<ReadCheckInDto> _readCheckInDtos = new List<ReadCheckInDto>();
         private ReadGymDto _readGymDto;
 
         public CheckInDataBuilder()
@@ -93,6 +94,55 @@ namespace Tests.TestData.Builders
                 CheckIn = _checkIn,
                 ReadCheckInDto = _readCheckInDto
             };
+        }
+
+        public CheckInDataBuilder WithMultipleCheckIns(int count)
+        {
+            var checkIns = new Faker<CheckIn>()
+                .RuleFor(c => c.UserId, f => _checkIn.UserId)
+                .RuleFor(c => c.GymId, f => _checkIn.GymId)
+                .RuleFor(c => c.CreatedAt, f => DateTime.UtcNow)
+                .Generate(count);
+
+           _readCheckInDtos = new Faker<CheckIn>()
+                .RuleFor(c => c.UserId, _checkIn.UserId)
+                .RuleFor(c => c.GymId, f => _checkIn.GymId)
+                .RuleFor(c => c.CreatedAt, f => DateTime.UtcNow)
+                .Generate(count)
+                .Select(c => new ReadCheckInDto(
+                    Guid.NewGuid(),
+                    c.UserId ?? Guid.Empty,
+                    c.GymId ?? Guid.Empty,
+                    c.ValidateAt,
+                    c.CreatedAt
+                )).ToList();
+
+            return this;
+        }
+
+        public CheckInDataBuilder WithUserId(Guid userId)
+        {
+            _createCheckInDto.UserId = userId;
+            _checkIn.UserId = userId;
+            _readCheckInDto.UserId = userId;
+           
+            if (_readCheckInDtos != null)
+            {
+                _readCheckInDtos.ForEach(dto => dto.UserId = userId);
+            }
+
+            return this;
+        }
+
+        public List<ReadCheckInDto> BuildReadCheckInDtoList(int count)
+        {
+            return Enumerable.Range(0, count).Select(_ => new ReadCheckInDto(
+                Guid.NewGuid(),
+                _checkIn.UserId ?? Guid.Empty,
+                _checkIn.GymId ?? Guid.Empty,
+                _checkIn.ValidateAt,
+                DateTime.UtcNow
+            )).ToList();
         }
     }
 }

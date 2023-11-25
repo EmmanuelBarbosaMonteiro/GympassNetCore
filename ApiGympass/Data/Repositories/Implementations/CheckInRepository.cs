@@ -32,5 +32,21 @@ namespace ApiGympass.Data.Repositories.Implementations
             return await _context.CheckIns
                 .FirstOrDefaultAsync(checkIn => checkIn.UserId == userId && checkIn.CreatedAt.Date == date.Date);
         }
+
+        public async Task<IEnumerable<CheckIn>> FindManyByUserId(Guid userId, int page, int pageSize)
+        {
+            return await _context.CheckIns
+                .Where(checkIn => checkIn.UserId == userId)
+                .OrderBy(checkIn => checkIn.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> CountCheckInsByUserId(Guid userId)
+        {
+            return await _context.CheckIns
+                         .CountAsync(checkIn => checkIn.UserId == userId);
+        }
     }
 }

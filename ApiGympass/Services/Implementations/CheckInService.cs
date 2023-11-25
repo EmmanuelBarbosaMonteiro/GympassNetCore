@@ -101,5 +101,33 @@ namespace ApiGympass.Services.Implementations
                 throw;
             }
         }
+
+        public async Task<(IEnumerable<ReadCheckInDto>, bool)> GetCheckInsByUserIdAsync(Guid userId, int page)
+        {
+            try
+            {
+                var user = await _userService.GetByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("No user found with ID: {UserId}", userId);
+                    throw new UserNotFoundError();
+                }
+
+                int pageSize = 20;
+                var checkIns = await _checkInRepository.FindManyByUserId(userId, page, pageSize);
+                var totalCount = await _checkInRepository.CountCheckInsByUserId(userId);
+
+                var readCheckInDtos = _mapper.Map<IEnumerable<ReadCheckInDto>>(checkIns);
+                bool hasNextPage = (page * pageSize) < totalCount;
+
+                return (readCheckInDtos, hasNextPage);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred while retrieving check-ins.");
+                throw;
+            
+            }
+        }
     }
 }

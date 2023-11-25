@@ -7,5 +7,6 @@ namespace ApiGympass.Services.Interfaces
     {
         Task<ReadCheckInDto> CreateCheckInAsync(CreateCheckInDto createCheckInDto);
         Task<ReadCheckInDto?> GetCheckInByIdAsync(Guid checkInId);
+        Task<(IEnumerable<ReadCheckInDto>, bool)> GetCheckInsByUserIdAsync(Guid userId, int page);
     }
 }

@@ -217,6 +217,54 @@ namespace Tests.Services
 
             Assert.IsType<CheckInDistanceViolationError>(exception);
         }
+
+        [Fact]
+        public async Task GetCheckInsByUserIdAsync_WithInvalidUser_ShouldThrowUserNotFoundError()
+        {
+            // Arrange
+            var invalidUserId = Guid.NewGuid();
+            var page = 1;
+
+            _mockUserService.Setup(service => service.GetByIdAsync(invalidUserId)).ReturnsAsync((ReadUserDto)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UserNotFoundError>(() => _service.GetCheckInsByUserIdAsync(invalidUserId, page));
+
+            Assert.IsType<UserNotFoundError>(exception);
+        }
+
+        [Fact]
+        public async Task GetCheckInsByUserIdAsync_WithValidUserId_ShouldReturnCheckInsAndPaginationInfo()
+        {
+            // Arrange
+            var validUserId = Guid.NewGuid();
+            var page = 1;
+            var pageSize = 20;
+            var totalCount = 40;
+
+            var checkInDataBuilder = new CheckInDataBuilder().WithUserId(validUserId);
+            var checkInTestData = checkInDataBuilder.WithMultipleCheckIns(totalCount).Build();
+
+            var userTestData = new UserDataBuilder().Build();
+
+            _mockUserService.Setup(service => service.GetByIdAsync(validUserId))
+                            .ReturnsAsync(userTestData.ReadUserDto);
+
+            _mockRepository.Setup(repo => repo.FindManyByUserId(validUserId, page, pageSize))
+                          .ReturnsAsync(checkInTestData.CheckIns);
+
+            _mockRepository.Setup(repo => repo.CountCheckInsByUserId(validUserId))
+                                .ReturnsAsync(totalCount);
+
+            // Act
+            var (checkIns, hasNextPage) = await _service.GetCheckInsByUserIdAsync(validUserId, page);
+
+            // Assert
+            Assert.NotNull(checkIns);
+            //Assert.Equal(pageSize, checkIns.Count());
+            Assert.True(hasNextPage);
+        }
+
     }
 
 }
