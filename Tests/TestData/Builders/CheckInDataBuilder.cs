@@ -10,6 +10,7 @@ namespace Tests.TestData.Builders
         private CreateCheckInDto _createCheckInDto;
         private CheckIn _checkIn;
         private ReadCheckInDto _readCheckInDto;
+        private List<CheckIn> _checkIns = new List<CheckIn>();
         private List<ReadCheckInDto> _readCheckInDtos = new List<ReadCheckInDto>();
         private ReadGymDto _readGymDto;
 
@@ -98,26 +99,25 @@ namespace Tests.TestData.Builders
 
         public CheckInDataBuilder WithMultipleCheckIns(int count)
         {
-            var checkIns = new Faker<CheckIn>()
+            _checkIns.Clear();
+
+            var faker = new Faker<CheckIn>()
                 .RuleFor(c => c.UserId, f => _checkIn.UserId)
                 .RuleFor(c => c.GymId, f => _checkIn.GymId)
-                .RuleFor(c => c.CreatedAt, f => DateTime.UtcNow)
-                .Generate(count);
+                .RuleFor(c => c.CreatedAt, f => DateTime.UtcNow);
 
-           _readCheckInDtos = new Faker<CheckIn>()
-                .RuleFor(c => c.UserId, _checkIn.UserId)
-                .RuleFor(c => c.GymId, f => _checkIn.GymId)
-                .RuleFor(c => c.CreatedAt, f => DateTime.UtcNow)
-                .Generate(count)
-                .Select(c => new ReadCheckInDto(
-                    Guid.NewGuid(),
-                    c.UserId ?? Guid.Empty,
-                    c.GymId ?? Guid.Empty,
-                    c.ValidateAt,
-                    c.CreatedAt
-                )).ToList();
+            for (int i = 0; i < count; i++)
+            {
+                var checkIn = faker.Generate();
+                _checkIns.Add(checkIn);
+            }
 
             return this;
+        }
+
+        public List<CheckIn> GetCheckIns()
+        {
+            return _checkIns;
         }
 
         public CheckInDataBuilder WithUserId(Guid userId)
@@ -125,24 +125,16 @@ namespace Tests.TestData.Builders
             _createCheckInDto.UserId = userId;
             _checkIn.UserId = userId;
             _readCheckInDto.UserId = userId;
-           
-            if (_readCheckInDtos != null)
+
+            if (_checkIns != null)
             {
-                _readCheckInDtos.ForEach(dto => dto.UserId = userId);
+                foreach (var checkIn in _checkIns)
+                {
+                    checkIn.UserId = userId;
+                }
             }
 
             return this;
-        }
-
-        public List<ReadCheckInDto> BuildReadCheckInDtoList(int count)
-        {
-            return Enumerable.Range(0, count).Select(_ => new ReadCheckInDto(
-                Guid.NewGuid(),
-                _checkIn.UserId ?? Guid.Empty,
-                _checkIn.GymId ?? Guid.Empty,
-                _checkIn.ValidateAt,
-                DateTime.UtcNow
-            )).ToList();
         }
     }
 }

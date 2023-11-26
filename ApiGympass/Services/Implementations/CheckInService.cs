@@ -129,5 +129,20 @@ namespace ApiGympass.Services.Implementations
             
             }
         }
+
+        public async Task<int?> GetCheckInsUserMetricsByUserId(Guid userId)
+        {
+            try
+            {
+                var user = await _userService.GetByIdAsync(userId);
+                var totalCount = await _checkInRepository.CountCheckInsByUserId(userId);
+                return totalCount;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred while retrieving check-ins.");
+                throw;
+            }
+        }
     }
 }

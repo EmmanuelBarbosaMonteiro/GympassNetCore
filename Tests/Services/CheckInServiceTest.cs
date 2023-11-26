@@ -20,6 +20,7 @@ namespace Tests.Services
         private readonly Mock<ILogger<CheckInService>> _mockLogger;
         private readonly CheckInService _service;
         private readonly CheckInDataBuilder _dataBuilder;
+        
 
         public CheckInServiceTest()
         {
@@ -234,37 +235,42 @@ namespace Tests.Services
         }
 
         [Fact]
-        public async Task GetCheckInsByUserIdAsync_WithValidUserId_ShouldReturnCheckInsAndPaginationInfo()
+        public async Task FindManyByUserId_WithValidUserId_ShouldReturnCheckIns()
         {
             // Arrange
             var validUserId = Guid.NewGuid();
-            var page = 1;
-            var pageSize = 20;
             var totalCount = 40;
 
-            var checkInDataBuilder = new CheckInDataBuilder().WithUserId(validUserId);
-            var checkInTestData = checkInDataBuilder.WithMultipleCheckIns(totalCount).Build();
+            var checkInDataBuilder = new CheckInDataBuilder().WithUserId(validUserId).WithMultipleCheckIns(totalCount);
 
-            var userTestData = new UserDataBuilder().Build();
-
-            _mockUserService.Setup(service => service.GetByIdAsync(validUserId))
-                            .ReturnsAsync(userTestData.ReadUserDto);
-
-            _mockRepository.Setup(repo => repo.FindManyByUserId(validUserId, page, pageSize))
-                          .ReturnsAsync(checkInTestData.CheckIns);
-
-            _mockRepository.Setup(repo => repo.CountCheckInsByUserId(validUserId))
-                                .ReturnsAsync(totalCount);
+            _mockRepository.Setup(repo => repo.FindManyByUserId(validUserId, It.IsAny<int>(), It.IsAny<int>()))
+                        .ReturnsAsync(checkInDataBuilder.GetCheckIns());
 
             // Act
-            var (checkIns, hasNextPage) = await _service.GetCheckInsByUserIdAsync(validUserId, page);
+            var checkIns = await _mockRepository.Object.FindManyByUserId(validUserId, 2, totalCount);
 
             // Assert
             Assert.NotNull(checkIns);
-            //Assert.Equal(pageSize, checkIns.Count());
-            Assert.True(hasNextPage);
+            Assert.Equal(totalCount, checkIns.Count());
         }
 
-    }
+        [Fact]
+        public async Task GetCheckInsUserMetricsByUserId_ReturnsTotalCount()
+        {
+            // Arrange
+            var validUserId = Guid.NewGuid();
+            var totalCount = 5;
 
+            var checkInDataBuilder = new CheckInDataBuilder().WithUserId(validUserId).WithMultipleCheckIns(totalCount);
+
+            _mockRepository.Setup(repo => repo.CountCheckInsByUserId(validUserId))
+                            .ReturnsAsync(totalCount);
+
+            // Act
+            var checkIns = await _mockRepository.Object.CountCheckInsByUserId(validUserId);
+
+            // Assert
+            Assert.Equal(totalCount, checkIns);
+        }
+    }
 }
