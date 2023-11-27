@@ -70,5 +70,32 @@ namespace ApiGympass.Services.Implementations
             }
         }
 
+        public async Task<(IEnumerable<ReadGymDto>, bool)> SearchGymsAsync(string query, int page)
+        {
+            try
+            {
+                int pageSize = 20;
+                var gyms = await _gymRepository.SearchManyAsync(query, page, pageSize);
+
+                var gymDtos = gyms.Select(gym => _mapper.Map<ReadGymDto>(gym)).ToList();
+
+                 int totalGyms = await _gymRepository.CountAsync(query);
+
+                bool hasNextPage = (page * pageSize) < totalGyms;
+
+                return (gymDtos, hasNextPage); 
+                
+            }
+            catch (GymNotFoundError)
+            {
+                _logger.LogWarning("No gym found with query: {Query}", query);
+                throw new GymNotFoundError();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred while retrieving gyms with query: {Query}", query);
+                throw;
+            }
+        }
     }
 }

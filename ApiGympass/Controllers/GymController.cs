@@ -47,15 +47,47 @@ namespace ApiGympass.Controllers
                 var gym = await _gymService.FindById(id);
                 return Ok(gym);
             }
-            catch (GymNotFoundError)
+            catch (GymNotFoundError ex)
             {
                 _logger.LogWarning("No gym found with ID: {id}", id);
-                return NotFound();
+                return NotFound( ex.Message);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Exception occurred while retrieving gym with ID: {id}", id);
                 return StatusCode(500, "An error occurred while retrieving the gym.");
+            }
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchGyms([FromQuery] string query, [FromQuery] int page = 1)
+        {
+            try
+            {
+                var (gyms, hasNextPage) = await _gymService.SearchGymsAsync(query, page);
+
+                if (hasNextPage)
+                {
+                    Response.Headers.Add("X-HasMorePages", "true");
+                    Response.Headers.Add("X-NextPage", $"{Request.Path}?query={Uri.EscapeDataString(query)}&page={page + 1}");
+                }
+                else
+                {
+                    Response.Headers.Add("X-HasMorePages", "false");
+                }
+
+                _logger.LogInformation("Found {GymCount} gyms with query: {query}", gyms.Count(), query);
+                return Ok(gyms);
+            }
+            catch (GymNotFoundError ex)
+            {
+                _logger.LogWarning("No gyms found with query: {query}", query);
+                return NotFound(ex.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception occurred while searching gyms with query: {query}", query);
+                return StatusCode(500, "An error occurred while searching gyms.");
             }
         }
     }

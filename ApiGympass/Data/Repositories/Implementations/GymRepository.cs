@@ -1,5 +1,6 @@
 using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiGympass.Data.Repositories.Implementations
 {
@@ -23,6 +24,21 @@ namespace ApiGympass.Data.Repositories.Implementations
         public async Task<Gym?> FindById(Guid gymId)
         {
             return await _context.Gyms.FindAsync(gymId);
+        }
+
+        public async Task<IEnumerable<Gym>> SearchManyAsync(string query, int page, int pageSize)
+        {
+            return await _context.Gyms
+                    .Where(gym => (gym.Title ?? string.Empty).ToLower().Contains(query.ToLower()))
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+        }
+
+        public async Task<int> CountAsync(string query)
+        {
+            return await _context.Gyms
+                        .CountAsync(gym => (gym.Title ?? string.Empty).ToLower().Contains(query.ToLower()));
         }
     }
 }

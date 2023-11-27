@@ -6,7 +6,7 @@ namespace ApiGympass.Data.Dtos
         public string? Title { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
-        public string? Description { get; }
-        public string? Phone { get; }
+        public string? Description { get; set; }
+        public string? Phone { get; set; }
     }
 }

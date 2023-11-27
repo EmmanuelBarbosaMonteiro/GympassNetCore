@@ -46,7 +46,7 @@ namespace ApiGympass.Data.Repositories.Implementations
         public async Task<int> CountCheckInsByUserId(Guid userId)
         {
             return await _context.CheckIns
-                         .CountAsync(checkIn => checkIn.UserId == userId);
+                .CountAsync(checkIn => checkIn.UserId == userId);
         }
     }
 }
