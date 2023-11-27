@@ -1,7 +1,6 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
-using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Implementations;
 using AutoMapper;
 using Microsoft.Extensions.Logging;

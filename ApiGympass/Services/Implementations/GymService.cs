@@ -79,17 +79,18 @@ namespace ApiGympass.Services.Implementations
 
                 var gymDtos = gyms.Select(gym => _mapper.Map<ReadGymDto>(gym)).ToList();
 
-                 int totalGyms = await _gymRepository.CountAsync(query);
+                if (gymDtos.Count == 0)
+                {
+                    _logger.LogWarning("No gyms found with query: {Query}", query);
+                    throw new GymNotFoundError();
+                }
+
+                int totalGyms = await _gymRepository.CountAsync(query);
 
                 bool hasNextPage = (page * pageSize) < totalGyms;
 
                 return (gymDtos, hasNextPage); 
                 
-            }
-            catch (GymNotFoundError)
-            {
-                _logger.LogWarning("No gym found with query: {Query}", query);
-                throw new GymNotFoundError();
             }
             catch (Exception e)
             {
