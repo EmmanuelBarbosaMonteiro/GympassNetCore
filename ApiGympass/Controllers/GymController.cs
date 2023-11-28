@@ -90,5 +90,26 @@ namespace ApiGympass.Controllers
                 return StatusCode(500, "An error occurred while searching gyms.");
             }
         }
+
+        [HttpGet("nearby")]
+        public async Task<IActionResult> FindGymsNearby([FromQuery] double latitude, [FromQuery] double longitude)
+        {
+            try
+            {
+                var gyms = await _gymService.FindManyNearbyAsync(latitude, longitude);
+                _logger.LogInformation("Found {GymCount} gyms nearby.", gyms.Count());
+                return Ok(gyms);
+            }
+            catch (GymNotFoundError ex)
+            {
+                _logger.LogWarning("No gyms found nearby.");
+                return NotFound(ex.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception occurred while searching gyms nearby.");
+                return StatusCode(500, "An error occurred while searching gyms nearby.");
+            }
+        }
     }
 }

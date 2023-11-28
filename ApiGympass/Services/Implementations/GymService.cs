@@ -32,13 +32,9 @@ namespace ApiGympass.Services.Implementations
             try
             {
                 var gym = _mapper.Map<Gym>(gymDto);
-
                 await _gymRepository.CreateGymAsync(gym);
-
                 var readGymDto = _mapper.Map<ReadGymDto>(gym);
-
-                _logger.LogInformation("Gym created with ID: {GymId}", gym.Id);
-                
+                _logger.LogInformation("Gym created with ID: {GymId}", gym.Id);  
                 return readGymDto;
             }
             catch (Exception e)
@@ -76,9 +72,7 @@ namespace ApiGympass.Services.Implementations
             {
                 int pageSize = 20;
                 var gyms = await _gymRepository.SearchManyAsync(query, page, pageSize);
-
                 var gymDtos = gyms.Select(gym => _mapper.Map<ReadGymDto>(gym)).ToList();
-
                 if (gymDtos.Count == 0)
                 {
                     _logger.LogWarning("No gyms found with query: {Query}", query);
@@ -86,15 +80,32 @@ namespace ApiGympass.Services.Implementations
                 }
 
                 int totalGyms = await _gymRepository.CountAsync(query);
-
                 bool hasNextPage = (page * pageSize) < totalGyms;
-
                 return (gymDtos, hasNextPage); 
                 
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error occurred while retrieving gyms with query: {Query}", query);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Gym>> FindManyNearbyAsync(double latitude, double longitude)
+        {
+            try
+            {
+                var gyms = await _gymRepository.FindManyNearbyAsync(latitude, longitude);
+                if (gyms.Count() == 0)
+                {
+                    _logger.LogWarning("No gyms found nearby.");
+                    throw new GymNotFoundError();
+                }
+                return gyms;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred while retrieving gyms nearby.");
                 throw;
             }
         }

@@ -40,5 +40,14 @@ namespace ApiGympass.Data.Repositories.Implementations
             return await _context.Gyms
                         .CountAsync(gym => (gym.Title ?? string.Empty).ToLower().Contains(query.ToLower()));
         }
+
+        public async Task<IEnumerable<Gym>> FindManyNearbyAsync(double latitude, double longitude)
+        {
+            var gyms = await _context.Gyms
+                .FromSqlRaw("SELECT * FROM gyms WHERE (6371 * acos(cos(radians({0})) * cos(radians(latitude)) * cos(radians(longitude) - radians({1})) + sin(radians({0})) * sin(radians(latitude)))) <= 10", latitude, longitude)
+                .ToListAsync();
+
+            return gyms;
+        }
     }
 }

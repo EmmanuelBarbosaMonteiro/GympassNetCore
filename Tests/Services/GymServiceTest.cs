@@ -1,6 +1,7 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
+using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Implementations;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -97,6 +98,44 @@ namespace Tests.Services
             // Assert
             Assert.Equal(pageSize, resultGyms.Count());
             Assert.True(hasNextPage);
+        }
+
+        [Fact]
+        public async Task FindManyNearbyAsync_WithValidCoordinates_ReturnsGyms()
+        {
+            // Arrange
+            var userLatitude = 40.7128;
+            var userLongitude = -74.0060;
+            var gyms = new GymDataBuilder()
+                .WithGymsNearby(userLatitude, userLongitude, 10, 5)
+                .BuildGymList();
+
+            _mockRepository.Setup(repo => repo.FindManyNearbyAsync(userLatitude, userLongitude))
+                        .ReturnsAsync(gyms);
+
+            // Act
+            var result = await _service.FindManyNearbyAsync(userLatitude, userLongitude);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(gyms.Count, result.Count());
+        }
+
+        [Fact]
+        public async Task FindManyNearbyAsync_WithValidCoordinates_ThrowsGymNotFoundError()
+        {
+            // Arrange
+            var userLatitude = 40.7128;
+            var userLongitude = -74.0060;
+            var gyms = new GymDataBuilder()
+                .WithGymsDistant(userLatitude, userLongitude, 100, 0)
+                .BuildGymList();
+
+            _mockRepository.Setup(repo => repo.FindManyNearbyAsync(userLatitude, userLongitude))
+                        .ReturnsAsync(gyms);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<GymNotFoundError>(() => _service.FindManyNearbyAsync(userLatitude, userLongitude));
         }
     }
 }
