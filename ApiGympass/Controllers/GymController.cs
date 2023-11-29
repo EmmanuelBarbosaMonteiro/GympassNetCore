@@ -92,7 +92,7 @@ namespace ApiGympass.Controllers
         }
 
         [HttpGet("nearby")]
-        public async Task<IActionResult> FindGymsNearby([FromQuery] double latitude, [FromQuery] double longitude)
+        public async Task<IActionResult> FindGymsNearby([FromQuery] decimal latitude, [FromQuery] decimal longitude)
         {
             try
             {

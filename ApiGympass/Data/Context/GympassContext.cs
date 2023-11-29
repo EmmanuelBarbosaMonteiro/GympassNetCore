@@ -9,6 +9,8 @@ namespace ApiGympass.Data
     {
         public GympassContext(DbContextOptions<GympassContext> options) : base(options)
         {
+            Gyms = Set<Gym>();
+            CheckIns = Set<CheckIn>();
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

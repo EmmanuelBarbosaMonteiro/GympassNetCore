@@ -101,14 +101,14 @@ namespace Tests.TestData.Builders
             };
         }
 
-        public GymDataBuilder WithGymsNearby(double userLatitude, double userLongitude, double radiusKm, int count)
+        public GymDataBuilder WithGymsNearby(decimal userLatitude, decimal userLongitude, decimal radiusKm, int count)
         {
             _gyms.Clear();
             var gymFaker = new Faker<Gym>()
                 .RuleFor(g => g.Id, f => Guid.NewGuid())
                 .RuleFor(g => g.Title, f => f.Company.CompanyName())
-                .RuleFor(g => g.Latitude, (f, g) => (decimal?)(userLatitude + f.Random.Double(-radiusKm / 111, radiusKm / 111)))
-                .RuleFor(g => g.Longitude, (f, g) => (decimal?)(userLongitude + f.Random.Double(-radiusKm / 111, radiusKm / 111)))
+                .RuleFor(g => g.Latitude, (f, g) => userLatitude + (decimal)f.Random.Double((double)(-radiusKm / 111), (double)(radiusKm / 111)))
+                .RuleFor(g => g.Longitude, (f, g) => userLongitude + (decimal)f.Random.Double((double)(-radiusKm / 111), (double)(radiusKm / 111)))
                 .RuleFor(g => g.Description, f => f.Lorem.Paragraph())
                 .RuleFor(g => g.Phone, f => f.Phone.PhoneNumber());
 
@@ -120,14 +120,14 @@ namespace Tests.TestData.Builders
             return this;
         }
 
-        public GymDataBuilder WithGymsDistant(double userLatitude, double userLongitude, double radiusKm, int count)
+        public GymDataBuilder WithGymsDistant(decimal userLatitude, decimal userLongitude, decimal radiusKm, int count)
         {
             _gyms.Clear();
             var gymFaker = new Faker<Gym>()
                 .RuleFor(g => g.Id, f => Guid.NewGuid())
                 .RuleFor(g => g.Title, f => f.Company.CompanyName())
-                .RuleFor(g => g.Latitude, (f, g) => (decimal?)(userLatitude + f.Random.Double(radiusKm / 111, 2 * radiusKm / 111)))
-                .RuleFor(g => g.Longitude, (f, g) => (decimal?)(userLongitude + f.Random.Double(radiusKm / 111, 2 * radiusKm / 111)))
+                .RuleFor(g => g.Latitude, (f, g) => userLatitude + (decimal)f.Random.Double((double)(radiusKm / 111), (double)(2 * radiusKm / 111)))
+                .RuleFor(g => g.Longitude, (f, g) => userLongitude + (decimal)f.Random.Double((double)(radiusKm / 111), (double)(2 * radiusKm / 111)))
                 .RuleFor(g => g.Description, f => f.Lorem.Paragraph())
                 .RuleFor(g => g.Phone, f => f.Phone.PhoneNumber());
 

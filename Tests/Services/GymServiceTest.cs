@@ -104,8 +104,8 @@ namespace Tests.Services
         public async Task FindManyNearbyAsync_WithValidCoordinates_ReturnsGyms()
         {
             // Arrange
-            var userLatitude = 40.7128;
-            var userLongitude = -74.0060;
+            var userLatitude = 40.7128m;
+            var userLongitude = -74.0060m;
             var gyms = new GymDataBuilder()
                 .WithGymsNearby(userLatitude, userLongitude, 10, 5)
                 .BuildGymList();
@@ -125,8 +125,8 @@ namespace Tests.Services
         public async Task FindManyNearbyAsync_WithValidCoordinates_ThrowsGymNotFoundError()
         {
             // Arrange
-            var userLatitude = 40.7128;
-            var userLongitude = -74.0060;
+            var userLatitude = 40.7128m;
+            var userLongitude = -74.0060m;
             var gyms = new GymDataBuilder()
                 .WithGymsDistant(userLatitude, userLongitude, 100, 0)
                 .BuildGymList();

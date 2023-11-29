@@ -91,17 +91,17 @@ namespace ApiGympass.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<Gym>> FindManyNearbyAsync(double latitude, double longitude)
+        public async Task<IEnumerable<ReadGymDto>> FindManyNearbyAsync(decimal latitude, decimal longitude)
         {
             try
             {
                 var gyms = await _gymRepository.FindManyNearbyAsync(latitude, longitude);
-                if (gyms.Count() == 0)
+                var gymDtos = gyms.Select(gym => _mapper.Map<ReadGymDto>(gym)).ToList();
+                if (gymDtos.Count == 0)
                 {
-                    _logger.LogWarning("No gyms found nearby.");
                     throw new GymNotFoundError();
                 }
-                return gyms;
+                return gymDtos;
             }
             catch (Exception e)
             {
