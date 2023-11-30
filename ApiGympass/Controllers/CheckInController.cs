@@ -111,5 +111,31 @@ namespace ApiGympass.Controllers
                 return StatusCode(500, "An error occurred while retrieving the check-ins.");
             }
         }
+
+        [HttpPost("Validated/{checkInId}")]
+        public async Task<IActionResult> ValidatedCheckInById(Guid checkInId)
+        {
+            try
+            {
+                var checkIn = await _checkInService.ValidatedCheckIn(checkInId);
+                _logger.LogInformation("Check-in retrieved successfully with ID: {CheckInId}", checkInId);
+                return Ok(checkIn);
+            }
+            catch (CheckInNotFoundError ex)
+            {
+                _logger.LogWarning(ex, "Check-in not found with ID: {CheckInId}", checkInId);
+                return NotFound(ex.Message);
+            }
+            catch (LateCheckInValidationError ex)
+            {
+                _logger.LogInformation("Attempted to confirm check-in using ID: {checkInId}, but it was delayed by more than 20 minutes.", checkInId);
+                return BadRequest(ex.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception occurred while retrieving check-in.");
+                return StatusCode(500, "An error occurred while retrieving the check-in.");
+            }
+        }
     }
 }

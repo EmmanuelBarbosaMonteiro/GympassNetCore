@@ -68,10 +68,9 @@ namespace ApiGympass.Services.Implementations
                 }
 
                 await _checkInRepository.CreateCheckInAsync(checkIn);
-                var readCheckInDto = _mapper.Map<ReadCheckInDto>(checkIn);
                 _logger.LogInformation("CheckIn created with ID: {CheckInId}", checkIn.Id);
 
-                return readCheckInDto;
+                return _mapper.Map<ReadCheckInDto>(checkIn);
             }
             catch (Exception e)
             {
@@ -92,8 +91,7 @@ namespace ApiGympass.Services.Implementations
                     throw new CheckInNotFoundError();
                 }
 
-                var readCheckInDto = _mapper.Map<ReadCheckInDto>(checkIn);
-                return readCheckInDto;
+                return _mapper.Map<ReadCheckInDto>(checkIn);
             }
             catch (Exception e)
             {
@@ -141,6 +139,39 @@ namespace ApiGympass.Services.Implementations
             catch (Exception e)
             {
                 _logger.LogError(e, "Error occurred while retrieving check-ins.");
+                throw;
+            }
+        }
+
+        public async Task<ReadCheckInDto> ValidatedCheckIn(Guid checkInId)
+        {
+            try
+            {
+                var checkInToBeValidated = await _checkInRepository.FindById(checkInId);
+
+                if (checkInToBeValidated == null)
+                {
+                    _logger.LogWarning("No check-in found with ID: {CheckInId}", checkInId);
+                    throw new CheckInNotFoundError();
+                }
+
+                DateTime currentTime = DateTime.UtcNow;
+                TimeSpan difference = currentTime - checkInToBeValidated.CreatedAt;
+                double distanceInMinutesFromCheckInCreation = difference.TotalMinutes;
+                if (distanceInMinutesFromCheckInCreation > 20)
+                {
+                    _logger.LogWarning("Attempted to confirm check-in using ID: {checkInId}, but it was delayed by more than 20 minutes.", checkInId);
+                    throw new LateCheckInValidationError();
+                }
+
+                checkInToBeValidated.ValidateAt = DateTime.UtcNow;
+                await _checkInRepository.UpdateCheckIn(checkInToBeValidated);
+
+                return _mapper.Map<ReadCheckInDto>(checkInToBeValidated);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error ocurred while validated check-in");
                 throw;
             }
         }

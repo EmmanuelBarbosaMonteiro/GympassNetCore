@@ -136,5 +136,55 @@ namespace Tests.TestData.Builders
 
             return this;
         }
+
+        public CheckInDataBuilder WithValidCheckIn()
+        {
+            var currentTime = DateTime.UtcNow;
+            var checkInId = Guid.NewGuid();
+            
+            _checkIn = new CheckIn
+            {
+                Id = checkInId,
+                UserId = Guid.NewGuid(),
+                GymId = Guid.NewGuid(),
+                ValidateAt = null,
+                CreatedAt = currentTime.AddMinutes(-10)
+            };
+
+            _readCheckInDto = new ReadCheckInDto(
+                checkInId,
+                _checkIn.UserId ?? Guid.Empty,
+                _checkIn.GymId ?? Guid.Empty,
+                _checkIn.ValidateAt,
+                _checkIn.CreatedAt
+            );
+
+            return this;
+        }
+
+        public CheckInDataBuilder WithLateCheckIn()
+        {
+            var currentTime = DateTime.UtcNow;
+            var checkInId = Guid.NewGuid();
+
+            _checkIn = new CheckIn
+            {
+                Id = checkInId,
+                UserId = Guid.NewGuid(),
+                GymId = Guid.NewGuid(),
+                ValidateAt = null,
+                CreatedAt = currentTime.AddMinutes(-30)
+            };
+
+            _readCheckInDto = new ReadCheckInDto(
+                checkInId,
+                _checkIn.UserId ?? Guid.Empty,
+                _checkIn.GymId ?? Guid.Empty,
+                _checkIn.ValidateAt,
+                _checkIn.CreatedAt
+            );
+
+            return this;
+        }
     }
 }

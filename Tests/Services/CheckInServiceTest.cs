@@ -272,5 +272,53 @@ namespace Tests.Services
             // Assert
             Assert.Equal(totalCount, checkIns);
         }
+
+        [Fact]
+        public async Task ValidatedCheckIn_WithNonExistentCheckInId_ShouldThrowCheckInNotFoundError()
+        {
+            // Arrange
+            var nonExistentCheckInId = Guid.NewGuid();
+            _mockRepository.Setup(repo => repo.FindById(nonExistentCheckInId))
+                        .ReturnsAsync((CheckIn)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<CheckInNotFoundError>(() => _service.ValidatedCheckIn(nonExistentCheckInId));
+        }
+
+        [Fact]
+        public async Task ValidatedCheckIn_WithValidAndTimelyCheckIn_ShouldValidateSuccessfully()
+        {
+            // Arrange
+            var checkInTestData = _dataBuilder.WithValidCheckIn().Build();
+            var checkInId = checkInTestData.CheckIn.Id;
+
+            _mockRepository.Setup(repo => repo.FindById(checkInId))
+                            .ReturnsAsync(checkInTestData.CheckIn);
+
+            _mockMapper.Setup(mapper => mapper.Map<ReadCheckInDto>(It.Is<CheckIn>(c => c.Id == checkInId)))
+                        .Returns(checkInTestData.ReadCheckInDto);
+
+            // Act
+            var result = await _service.ValidatedCheckIn(checkInId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(checkInId, result.Id);
+        }
+
+        [Fact]
+        public async Task ValidatedCheckIn_WithLateCheckIn_ShouldThrowLateCheckInValidationError()
+        {
+            // Arrange
+            var lateCheckInTestData = _dataBuilder.WithLateCheckIn().Build();
+            var lateCheckInId = lateCheckInTestData.CheckIn.Id;
+
+            _mockRepository.Setup(repo => repo.FindById(lateCheckInId))
+                        .ReturnsAsync(lateCheckInTestData.CheckIn);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<LateCheckInValidationError>(() => 
+                _service.ValidatedCheckIn(lateCheckInId));
+        }
     }
 }
