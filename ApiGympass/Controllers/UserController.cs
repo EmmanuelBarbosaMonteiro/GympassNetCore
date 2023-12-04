@@ -7,6 +7,7 @@ using Project.Services.ErrorHandling;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using ApiGympass.Services.Implementations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApiGympass.Controllers
 {
@@ -64,9 +65,21 @@ namespace ApiGympass.Controllers
             {
                 var user = await _userService.GetUserByEmailAsync(dto.Email ?? string.Empty);
                 await _userService.LoginUserAsync(dto);
-                var token = _tokenService.GenerateToken(user);
+
+                var accessToken = _tokenService.GenerateToken(user);
+                var refreshToken = _tokenService.GenerateRefreshToken(user);
+
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                };
+                Response.Cookies.Append("RefreshToken", refreshToken, cookieOptions);
+
                 _logger.LogInformation("User logged in successfully");
-                return Ok(token);
+                return Ok(new { accessToken });
             }
             catch (InvalidCredentialsError ex)
             {
@@ -78,6 +91,59 @@ namespace ApiGympass.Controllers
                 _logger.LogError(ex, "Unexpected exception in LoginUser");
                 return StatusCode(500, "An internal server error occurred.");
             }
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            var refreshToken = Request.Cookies["RefreshToken"];
+
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return Unauthorized("Invalid refresh token.");
+            }
+
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = _tokenService.GetPrincipalFromExpiredToken(refreshToken);
+            }
+            catch
+            {
+                return Unauthorized("Invalid refresh token.");
+            }
+
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Invalid refresh token.");
+            }
+
+            var userDto = await _userService.GetByIdAsync(new Guid(userId));
+            if (userDto == null)
+            {
+                return BadRequest();
+            }
+            var user = await _userService.GetUserByEmailAsync(userDto.Email);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var newAccessToken = _tokenService.GenerateToken(user);
+            var newRefreshToken = _tokenService.GenerateRefreshToken(user);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, // Set to false if testing locally without HTTPS
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("RefreshToken", newRefreshToken, cookieOptions);
+
+            return Ok(new { accessToken = newAccessToken });
         }
 
         [HttpPut("{userId}")]
