@@ -17,16 +17,14 @@ namespace ApiGympass.Services.Implementations
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
         private readonly SignInManager<User> _signInManager;
-        private readonly TokenService _tokenService;
 
-        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger, SignInManager<User> signInManager, TokenService tokenService)
+        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger, SignInManager<User> signInManager)
         {
             _userRepository = userRepository;
             _userManager = userManager;
             _mapper = mapper;
             _logger = logger;
             _signInManager = signInManager;
-            _tokenService = tokenService;
         }
 
         public async Task<ReadUserDto> CreateUserAsync(CreateUserDto createUserDto)
@@ -40,7 +38,6 @@ namespace ApiGympass.Services.Implementations
                 {
                     var readUserDto = _mapper.Map<ReadUserDto>(user);
                     _logger.LogInformation("User created with ID: {UserId}", user.Id);
-                    _tokenService.GenerateToken(user);
                     return readUserDto;
                 }
                 else
@@ -56,7 +53,7 @@ namespace ApiGympass.Services.Implementations
             }
         }
 
-        public async Task<string> LoginUserAsync(LoginUserDto loginUserDto)
+        public async Task<bool> LoginUserAsync(LoginUserDto loginUserDto)
         {
             try
             {
@@ -66,8 +63,7 @@ namespace ApiGympass.Services.Implementations
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in with ID: {UserId}", user.Id);
-                    var token = _tokenService.GenerateToken(user);
-                    return token;
+                    return true;
                 }
                 else
                 {
@@ -80,6 +76,11 @@ namespace ApiGympass.Services.Implementations
                 _logger.LogError(e, "Error occurred while logging in user.");
                 throw;
             }
+        }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
         }
 
         public async Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)

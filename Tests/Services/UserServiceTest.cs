@@ -25,7 +25,6 @@ namespace ApiGympass.Tests
         private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
         private readonly Mock<ILogger<UserService>> _loggerMock = new Mock<ILogger<UserService>>();
         private readonly UserService _userService;
-        private readonly Mock<TokenService> _tokenServiceMock = new Mock<TokenService>();
         private readonly Mock<IUserService> _decoratedUserServiceMock = new Mock<IUserService>();
         private readonly ArchivingUserService _archivingUserService;
 
@@ -38,8 +37,7 @@ namespace ApiGympass.Tests
                 _userManagerMock.Object, 
                 _mapperMock.Object, 
                 _loggerMock.Object,
-                _signInManagerMock.Object,
-                _tokenServiceMock.Object);
+                _signInManagerMock.Object);
 
             _archivingUserService = new ArchivingUserService(
                 _decoratedUserServiceMock.Object, 
@@ -79,20 +77,21 @@ namespace ApiGympass.Tests
         }
 
         [Fact]
-        public async Task LoginUserAsync_WithValidCredentials_ShouldReturnValidToken()
+        public async Task LoginUserAsync_WithValidCredentials_ShouldReturnTrue()
         {
             // Arrange
-            var testData = new UserDataBuilder().Build();
+            var validLoginUserDto = new LoginUserDto { Email = "validemail@example.com", Password = "ValidPassword" };
+            var user = new User { UserName = "validUser", Email = "validemail@example.com" };
 
-            _userManagerMock.Setup(um => um.FindByEmailAsync(testData.LoginUserDto.Email)).ReturnsAsync(testData.User);
-            _signInManagerMock.Setup(sm => sm.PasswordSignInAsync(testData.User.UserName, testData.LoginUserDto.Password, false, false))
+            _userManagerMock.Setup(um => um.FindByEmailAsync(validLoginUserDto.Email)).ReturnsAsync(user);
+            _signInManagerMock.Setup(sm => sm.PasswordSignInAsync(user.UserName, validLoginUserDto.Password, false, false))
                             .ReturnsAsync(SignInResult.Success);
 
             // Act
-            var token = await _userService.LoginUserAsync(testData.LoginUserDto);
+            var result = await _userService.LoginUserAsync(validLoginUserDto);
 
             // Assert
-            Assert.NotNull(token);
+            Assert.True(result);
         }
 
         [Fact]

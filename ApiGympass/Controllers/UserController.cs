@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
 using ApiGympass.Services.ErrorHandling;
 using Project.Services.ErrorHandling;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using ApiGympass.Services.Implementations;
 
 namespace ApiGympass.Controllers
 {
@@ -13,11 +16,13 @@ namespace ApiGympass.Controllers
     {
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
+        private readonly TokenService _tokenService;
 
-        public UserController(IUserService userService, ILogger<UserController> logger)
+        public UserController(IUserService userService, ILogger<UserController> logger, TokenService tokenService)
         {
             _userService = userService;
             _logger = logger;
+            _tokenService = tokenService;
         }
 
         [HttpPost]
@@ -57,7 +62,9 @@ namespace ApiGympass.Controllers
             }
             try
             {
-                var token = await _userService.LoginUserAsync(dto);
+                var user = await _userService.GetUserByEmailAsync(dto.Email ?? string.Empty);
+                await _userService.LoginUserAsync(dto);
+                var token = _tokenService.GenerateToken(user);
                 _logger.LogInformation("User logged in successfully");
                 return Ok(token);
             }
@@ -74,6 +81,7 @@ namespace ApiGympass.Controllers
         }
 
         [HttpPut("{userId}")]
+        [Authorize]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserDto updateUserDto)
         {
             if (!ModelState.IsValid)
@@ -83,6 +91,13 @@ namespace ApiGympass.Controllers
             }
             try
             {
+                var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userId.ToString() != authenticatedUserId)
+                {
+                    return Unauthorized("Access denied. You can only access your own profile.");
+                }
+                
                 var result = await _userService.UpdateUserAsync(userId, updateUserDto);
                 _logger.LogInformation("User updated successfully with ID: {UserId}", userId);
                 return Ok("User updated successfully");
@@ -100,6 +115,7 @@ namespace ApiGympass.Controllers
         }
 
         [HttpPatch("{userId}")]
+        [Authorize]
         public async Task<IActionResult> PatchUser(string userId, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
         {
             if (patchDoc == null || !ModelState.IsValid)
@@ -109,6 +125,13 @@ namespace ApiGympass.Controllers
             }
             try
             {
+                var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userId.ToString() != authenticatedUserId)
+                {
+                    return Unauthorized("Access denied. You can only access your own profile.");
+                }
+
                 var result = await _userService.PatchUserAsync(userId, patchDoc);
                 _logger.LogInformation("User patched successfully with ID: {UserId}", userId);
                 return Ok("User patched successfully");
@@ -127,10 +150,18 @@ namespace ApiGympass.Controllers
         }
 
         [HttpGet("{userId}")]
+        [Authorize]
         public async Task<IActionResult> GetUserById(Guid userId)
         {
             try
             {
+                var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userId.ToString() != authenticatedUserId)
+                {
+                    return Unauthorized("Access denied. You can only access your own profile.");
+                }
+
                 var user = await _userService.GetByIdAsync(userId);
                 _logger.LogInformation("User retrieved successfully with ID: {UserId}", userId);
                 return Ok(user);

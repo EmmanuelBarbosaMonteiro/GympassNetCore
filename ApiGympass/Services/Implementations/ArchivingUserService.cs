@@ -27,7 +27,7 @@ namespace ApiGympass.Services.Implementations
             return await _decoratedUserService.CreateUserAsync(createUserDto);
         }
 
-        public async Task<string> LoginUserAsync(LoginUserDto loginUserDto)
+        public async Task<bool> LoginUserAsync(LoginUserDto loginUserDto)
         {
             var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
             if (user == null || user.State == State.Inactive)
@@ -102,6 +102,17 @@ namespace ApiGympass.Services.Implementations
 
             _logger.LogInformation("User deleted with ID: {UserId}", user.Id);
             return result;
+        }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || user.State == State.Inactive) 
+            {
+                _logger.LogWarning("Attempted to get a non-existent user.");
+                throw new InvalidCredentialsError();
+            }
+            return await _decoratedUserService.GetUserByEmailAsync(email);
         }
     }
 }
