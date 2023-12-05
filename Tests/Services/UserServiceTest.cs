@@ -21,7 +21,6 @@ namespace ApiGympass.Tests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock = new Mock<IUserRepository>();
         private readonly Mock<UserManager<User>> _userManagerMock;
-        private readonly Mock<SignInManager<User>> _signInManagerMock;
         private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
         private readonly Mock<ILogger<UserService>> _loggerMock = new Mock<ILogger<UserService>>();
         private readonly UserService _userService;
@@ -31,13 +30,11 @@ namespace ApiGympass.Tests
         public UserServiceTests()
         {
             _userManagerMock = CreateMockUserManager();
-            _signInManagerMock = CreateMockSignInManager();
             _userService = new UserService(
                 _userRepositoryMock.Object, 
                 _userManagerMock.Object, 
                 _mapperMock.Object, 
-                _loggerMock.Object,
-                _signInManagerMock.Object);
+                _loggerMock.Object);
 
             _archivingUserService = new ArchivingUserService(
                 _decoratedUserServiceMock.Object, 
@@ -84,8 +81,8 @@ namespace ApiGympass.Tests
             var user = new User { UserName = "validUser", Email = "validemail@example.com" };
 
             _userManagerMock.Setup(um => um.FindByEmailAsync(validLoginUserDto.Email)).ReturnsAsync(user);
-            _signInManagerMock.Setup(sm => sm.PasswordSignInAsync(user.UserName, validLoginUserDto.Password, false, false))
-                            .ReturnsAsync(SignInResult.Success);
+            _userManagerMock.Setup(sm => sm.CheckPasswordAsync(user, validLoginUserDto.Password))
+                            .ReturnsAsync(true);
 
             // Act
             var result = await _userService.LoginUserAsync(validLoginUserDto);
@@ -102,8 +99,8 @@ namespace ApiGympass.Tests
             var  invalidLoginUserDto = new LoginUserDto { Email = testData.LoginUserDto.Email, Password = "wrongPassword" };
 
             _userManagerMock.Setup(um => um.FindByEmailAsync(testData.LoginUserDto.Email)).ReturnsAsync(testData.User);
-            _signInManagerMock.Setup(sm => sm.PasswordSignInAsync(testData.User.UserName, invalidLoginUserDto.Password, false, false))
-                            .ReturnsAsync(SignInResult.Failed);
+            _userManagerMock.Setup(sm => sm.CheckPasswordAsync(testData.User, invalidLoginUserDto.Password))
+                            .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidCredentialsError>(() => _userService.LoginUserAsync(invalidLoginUserDto));
@@ -117,8 +114,8 @@ namespace ApiGympass.Tests
             var  invalidLoginUserDto = new LoginUserDto { Email = "invalidemail@exemple.com", Password = "wrongPassword" };
 
             _userManagerMock.Setup(um => um.FindByEmailAsync(testData.LoginUserDto.Email)).ReturnsAsync(testData.User);
-            _signInManagerMock.Setup(sm => sm.PasswordSignInAsync(invalidLoginUserDto.Email, invalidLoginUserDto.Password, false, false))
-                            .ReturnsAsync(SignInResult.Failed);
+            _userManagerMock.Setup(sm => sm.CheckPasswordAsync(testData.User, invalidLoginUserDto.Password))
+                            .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidCredentialsError>(() => _archivingUserService.LoginUserAsync(invalidLoginUserDto));

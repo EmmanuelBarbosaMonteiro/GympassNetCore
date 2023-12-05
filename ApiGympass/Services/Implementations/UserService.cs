@@ -16,15 +16,13 @@ namespace ApiGympass.Services.Implementations
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
-        private readonly SignInManager<User> _signInManager;
 
-        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger, SignInManager<User> signInManager)
+        public UserService(IUserRepository userRepository, UserManager<User> userManager, IMapper mapper, ILogger<UserService> logger)
         {
             _userRepository = userRepository;
             _userManager = userManager;
             _mapper = mapper;
             _logger = logger;
-            _signInManager = signInManager;
         }
 
         public async Task<ReadUserDto> CreateUserAsync(CreateUserDto createUserDto)
@@ -58,9 +56,9 @@ namespace ApiGympass.Services.Implementations
             try
             {
                 var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
-                var result = await _signInManager.PasswordSignInAsync(user.UserName, loginUserDto.Password, false, false);
+                var result = await _userManager.CheckPasswordAsync(user, loginUserDto.Password);
 
-                if (result.Succeeded)
+                if (result == true)
                 {
                     _logger.LogInformation("User logged in with ID: {UserId}", user.Id);
                     return true;

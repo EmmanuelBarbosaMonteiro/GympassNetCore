@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using ApiGympass.Services.Implementations;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ApiGympass.Controllers
 {
@@ -74,7 +75,7 @@ namespace ApiGympass.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddDays(7)
+                    Expires = DateTime.UtcNow.AddMinutes(2)
                 };
                 Response.Cookies.Append("RefreshToken", refreshToken, cookieOptions);
 
@@ -137,9 +138,9 @@ namespace ApiGympass.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, // Set to false if testing locally without HTTPS
+                Secure = false, // Set to false if testing locally without HTTPS
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Expires = DateTime.UtcNow.AddMinutes(2)
             };
             Response.Cookies.Append("RefreshToken", newRefreshToken, cookieOptions);
 
@@ -147,7 +148,7 @@ namespace ApiGympass.Controllers
         }
 
         [HttpPut("{userId}")]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserDto updateUserDto)
         {
             if (!ModelState.IsValid)
@@ -181,7 +182,7 @@ namespace ApiGympass.Controllers
         }
 
         [HttpPatch("{userId}")]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> PatchUser(string userId, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
         {
             if (patchDoc == null || !ModelState.IsValid)
@@ -216,7 +217,7 @@ namespace ApiGympass.Controllers
         }
 
         [HttpGet("{userId}")]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetUserById(Guid userId)
         {
             try

@@ -2,7 +2,6 @@ using System.Text;
 using ApiGympass.Data;
 using ApiGympass.Data.Repositories.Implementations;
 using ApiGympass.Data.Repositories.Interfaces;
-using ApiGympass.Middleware;
 using ApiGympass.Models;
 using ApiGympass.Services.Implementations;
 using ApiGympass.Services.Interfaces;
@@ -21,14 +20,16 @@ var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
+        options.RequireHttpsMetadata = false; // True in production
+        options.SaveToken = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
         };
     });
 
@@ -38,6 +39,7 @@ builder.Services
         options.User.AllowedUserNameCharacters = "aãbcdefghijklmnoõpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
         options.User.RequireUniqueEmail = true;
     })
+    .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<GympassContext>()
     .AddDefaultTokenProviders();
 
@@ -93,8 +95,6 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
 });
-
-app.UseMiddleware<UnauthorizedErrorHandlerMiddleware>();
 
 app.MapControllers();
 

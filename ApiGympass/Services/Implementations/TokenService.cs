@@ -30,7 +30,7 @@ namespace ApiGympass.Services.Implementations
 
             var token = new JwtSecurityToken
                 (
-                    expires: DateTime.UtcNow.AddMinutes(10),
+                    expires: DateTime.UtcNow.AddMinutes(1),
                     claims: claims,
                     signingCredentials: signingCredentials
                 );
@@ -49,7 +49,7 @@ namespace ApiGympass.Services.Implementations
             var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var refreshToken = new JwtSecurityToken(
-                expires: DateTime.UtcNow.AddDays(7),
+                expires: DateTime.UtcNow.AddMinutes(2),
                 claims: claims,
                 signingCredentials: signingCredentials
             );
@@ -65,7 +65,7 @@ namespace ApiGympass.Services.Implementations
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"])),
-                ValidateLifetime = false
+                ValidateLifetime = true
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
