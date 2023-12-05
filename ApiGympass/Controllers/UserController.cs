@@ -75,7 +75,7 @@ namespace ApiGympass.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddMinutes(2)
+                    Expires = DateTime.UtcNow.AddDays(7)
                 };
                 Response.Cookies.Append("RefreshToken", refreshToken, cookieOptions);
 
@@ -140,7 +140,7 @@ namespace ApiGympass.Controllers
                 HttpOnly = true,
                 Secure = false, // Set to false if testing locally without HTTPS
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(2)
+                Expires = DateTime.UtcNow.AddDays(7)
             };
             Response.Cookies.Append("RefreshToken", newRefreshToken, cookieOptions);
 
