@@ -7,8 +7,6 @@ using Project.Services.ErrorHandling;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using ApiGympass.Services.Implementations;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ApiGympass.Controllers
 {
@@ -147,8 +145,8 @@ namespace ApiGympass.Controllers
             return Ok(new { accessToken = newAccessToken });
         }
 
+        [Authorize]
         [HttpPut("{userId}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserDto updateUserDto)
         {
             if (!ModelState.IsValid)
@@ -181,8 +179,8 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
         [HttpPatch("{userId}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> PatchUser(string userId, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
         {
             if (patchDoc == null || !ModelState.IsValid)
@@ -216,8 +214,8 @@ namespace ApiGympass.Controllers
             
         }
 
+        [Authorize]
         [HttpGet("{userId}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetUserById(Guid userId)
         {
             try
@@ -245,6 +243,8 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -253,6 +253,8 @@ namespace ApiGympass.Controllers
             return Ok(userDtos);
         }
 
+        [Authorize]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpDelete("{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {

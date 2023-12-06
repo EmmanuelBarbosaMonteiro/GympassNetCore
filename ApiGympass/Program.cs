@@ -16,6 +16,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<GympassContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services
+    .AddIdentity<User, IdentityRole<Guid>>(options =>
+    {
+        options.User.AllowedUserNameCharacters = "aãbcdefghijklmnoõpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<GympassContext>()
+    .AddDefaultTokenProviders();
+
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -33,27 +42,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services
-    .AddIdentity<User, IdentityRole<Guid>>(options =>
-    {
-        options.User.AllowedUserNameCharacters = "aãbcdefghijklmnoõpqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
-        options.User.RequireUniqueEmail = true;
-    })
-    .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<GympassContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+});
+
+builder.Services.AddAuthorization(options => 
+{
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireMemberRole", policy => policy.RequireRole("Member"));
+});
 
 // AutoMapper configuration
 builder.Services.
     AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-// Services and Repositories for DI
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Admin", policy => policy.RequireClaim("Admin"));
-    options.AddPolicy("User", policy => policy.RequireClaim("User"));
-});
 
 // Repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();

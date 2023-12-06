@@ -21,7 +21,8 @@ namespace ApiGympass.Services.Implementations
             {
                 new Claim("sub", user.Id.ToString()),
                 new Claim("user", user.UserName),
-                new Claim("email", user.Email)
+                new Claim("email", user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

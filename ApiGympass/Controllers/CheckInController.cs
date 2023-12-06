@@ -1,6 +1,7 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiGympass.Controllers
@@ -18,6 +19,7 @@ namespace ApiGympass.Controllers
             _logger = logger;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateCheckIn([FromBody] CreateCheckInDto createCheckInDto)
         {
@@ -59,6 +61,7 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCheckInById(Guid id)
         {
@@ -80,6 +83,9 @@ namespace ApiGympass.Controllers
             }
         }
 
+
+        [Authorize]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("CheckIns/{userId}")]
         public async Task<IActionResult> GetCheckInsByUserIdAsync(Guid userId, [FromQuery] int page = 1)
         {
@@ -112,6 +118,8 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("Validated/{checkInId}")]
         public async Task<IActionResult> ValidatedCheckInById(Guid checkInId)
         {

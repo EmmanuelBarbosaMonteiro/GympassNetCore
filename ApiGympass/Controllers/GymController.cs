@@ -1,6 +1,7 @@
 using ApiGympass.Data.Dtos;
 using ApiGympass.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiGympass.Controllers
@@ -18,6 +19,8 @@ namespace ApiGympass.Controllers
             _logger = logger;
         }
 
+        [Authorize]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost]
         public async Task<IActionResult> CreateGym([FromBody] CreateGymDto gymDto)
         {
@@ -39,6 +42,7 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetGymById(Guid id)
         {
@@ -59,6 +63,7 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("search")]
         public async Task<IActionResult> SearchGyms([FromQuery] string query, [FromQuery] int page = 1)
         {
@@ -91,6 +96,7 @@ namespace ApiGympass.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("nearby")]
         public async Task<IActionResult> FindGymsNearby([FromQuery] decimal latitude, [FromQuery] decimal longitude)
         {
