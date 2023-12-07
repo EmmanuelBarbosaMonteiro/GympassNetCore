@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GympassNetCore\ApiGympass.csproj" />
+    <ProjectReference Include="..\GympassNetCore\GympassNetCore.csproj" />
   </ItemGroup>
 
 </Project>
