@@ -55,7 +55,6 @@ dlldata.c
 BenchmarkDotNet.Artifacts/
 
 # .NET Core
-project.lock.json
 project.fragment.lock.json
 artifacts/
 **/Properties/launchSettings.json
@@ -173,7 +172,6 @@ AutoTest.Net/
 *.clcf
 
 # .NET Core
-project.lock.json
 project.fragment.lock.json
 artifacts/
 # End of list
