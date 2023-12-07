@@ -15,10 +15,13 @@ jobs:
           cache: true
 
       - name: Restore dependencies
-        run: dotnet restore ApiGympass
+        run: dotnet restore
+        working-directory: ApiGympass
 
       - name: Build
-        run: dotnet build ApiGympass
+        run: dotnet build --no-restore
+        working-directory: ApiGympass
 
-      - name: Run tests
-        run: dotnet test
+      - name: Test
+        run: dotnet test --no-build
+        working-directory: Tests
