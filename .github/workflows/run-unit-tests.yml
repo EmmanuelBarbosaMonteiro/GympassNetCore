@@ -15,7 +15,7 @@ jobs:
           cache: true
 
       - name: Restore dependencies
-        run: dotnet restore ./GympassNetCore.sln
+        run: dotnet restore ./ApiGympass.sln --force
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
