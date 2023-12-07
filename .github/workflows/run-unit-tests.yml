@@ -15,10 +15,10 @@ jobs:
           cache: true
 
       - name: Restore dependencies
-        run: dotnet restore ApiGympass/ApiGympass
+        run: dotnet restore GympassNetCore/ApiGympass/ApiGympass.csproj
 
       - name: Build
-        run: dotnet build ApiGympass/ApiGympass --configuration Release --no-restore
+        run: dotnet build GympassNetCore/ApiGympass/ApiGympass.csproj --configuration Release --no-restore
 
       - name: Run tests
         run: dotnet test --configuration Release --no-build
