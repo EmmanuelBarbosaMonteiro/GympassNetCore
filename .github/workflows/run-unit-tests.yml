@@ -15,10 +15,12 @@ jobs:
           cache: true
 
       - name: Restore dependencies
-        run: dotnet restore ApiGympass.sln --loocked-mode
+        run: dotnet restore --locked-mode
+        working-directory: ApiGympass
 
       - name: Build
-        run: dotnet build ApiGympass.sln --no-restore
+        run: dotnet build --no-restore
+        working-directory: ApiGympass
 
       - name: Run tests
         run: dotnet test ApiGympass.sln --no-build --verbosity normal
