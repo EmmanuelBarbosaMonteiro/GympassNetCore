@@ -1,4 +1,4 @@
-# App Name
+# App GympassNetCore
 
 This is a Gympass-style application, developed to showcase skills in .NET, unit testing, and CI with GitHub.
 
