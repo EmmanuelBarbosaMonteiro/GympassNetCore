@@ -19,8 +19,23 @@ namespace ApiGympass.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Creates a new check-in.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a new check-in with the provided details.
+        /// </remarks>
+        /// <param name="createCheckInDto">The check-in data transfer object containing check-in details.</param>
+        /// <response code="201">If the check-in is created successfully.</response>
+        /// <response code="400">If the request has invalid model state or a check-in constraint violation occurs.</response>
+        /// <response code="404">If the specified gym or user is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpPost]
+        [ProducesResponseType(typeof(ReadCheckInDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateCheckIn([FromBody] CreateCheckInDto createCheckInDto)
         {
             if (!ModelState.IsValid)
@@ -61,8 +76,18 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a check-in by its ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the check-in.</param>
+        /// <response code="200">If the check-in is found.</response>
+        /// <response code="404">If no check-in is found with the specified ID.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ReadCheckInDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCheckInById(Guid id)
         {
             try
@@ -83,10 +108,25 @@ namespace ApiGympass.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Retrieves a list of check-ins for a specific user.
+        /// </summary>
+        /// <remarks>
+        /// This method returns check-ins for the given user ID. Access is restricted to administrators.
+        /// </remarks>
+        /// <param name="userId">The ID of the user whose check-ins are being retrieved.</param>
+        /// <param name="page">The page number for pagination.</param>
+        /// <response code="200">If check-ins are found for the user.</response>
+        /// <response code="403">If the user does not have administrator privileges.</response>
+        /// <response code="404">If no user is found with the specified ID.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("CheckIns/{userId}")]
+        [ProducesResponseType(typeof(IEnumerable<ReadCheckInDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCheckInsByUserIdAsync(Guid userId, [FromQuery] int page = 1)
         {
             try
@@ -118,9 +158,26 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Validates a check-in by its ID.
+        /// </summary>
+        /// <remarks>
+        /// This method validates a specific check-in. Access is restricted to administrators.
+        /// </remarks>
+        /// <param name="checkInId">The ID of the check-in to validate.</param>
+        /// <response code="200">If the check-in is validated successfully.</response>
+        /// <response code="403">If the user does not have administrator privileges.</response>
+        /// <response code="400">If the check-in is not validated due to being late or other constraints.</response>
+        /// <response code="404">If no check-in is found with the specified ID.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("Validated/{checkInId}")]
+        [ProducesResponseType(typeof(ReadCheckInDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ValidatedCheckInById(Guid checkInId)
         {
             try

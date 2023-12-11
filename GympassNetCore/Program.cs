@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using ApiGympass.Data;
 using ApiGympass.Data.Repositories.Implementations;
@@ -5,10 +6,13 @@ using ApiGympass.Data.Repositories.Interfaces;
 using ApiGympass.Models;
 using ApiGympass.Services.Implementations;
 using ApiGympass.Services.Interfaces;
+using GympassNetCore.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,7 +82,14 @@ builder.Services.AddControllers();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "GympassApi", Version = "v1" });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+    c.DocumentFilter<SuppressExamplesDocumentFilter>();
+});
 
 var app = builder.Build();
 

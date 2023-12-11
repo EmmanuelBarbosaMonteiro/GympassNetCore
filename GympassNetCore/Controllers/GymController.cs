@@ -19,9 +19,24 @@ namespace ApiGympass.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Creates a new gym.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a new gym with the provided details. Access is restricted to administrators.
+        /// </remarks>
+        /// <param name="gymDto">The gym data transfer object containing the gym's details.</param>
+        /// <response code="201">If the gym is created successfully.</response>
+        /// <response code="400">If the request has invalid model state.</response>
+        /// <response code="403">If the user does not have administrator privileges.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPost]
+        [ProducesResponseType(typeof(ReadGymDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateGym([FromBody] CreateGymDto gymDto)
         {
             if (!ModelState.IsValid)
@@ -42,8 +57,18 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a gym by its ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the gym.</param>
+        /// <response code="200">If the gym is found.</response>
+        /// <response code="404">If no gym is found with the specified ID.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ReadGymDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetGymById(Guid id)
         {
             try
@@ -63,8 +88,18 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Searches for gyms based on a query.
+        /// </summary>
+        /// <param name="query">The search query string.</param>
+        /// <param name="page">The page number for pagination (default is 1).</param>
+        /// <response code="200">If gyms are found matching the query.</response>
+        /// <response code="404">If no gyms are found matching the query.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpGet("search")]
+        [ProducesResponseType(typeof(IEnumerable<ReadGymDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> SearchGyms([FromQuery] string query, [FromQuery] int page = 1)
         {
             try
@@ -96,8 +131,19 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Finds gyms nearby based on latitude and longitude.
+        /// </summary>
+        /// <param name="latitude">The latitude coordinate.</param>
+        /// <param name="longitude">The longitude coordinate.</param>
+        /// <response code="200">If gyms are found nearby.</response>
+        /// <response code="404">If no gyms are found nearby.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpGet("nearby")]
+        [ProducesResponseType(typeof(IEnumerable<ReadGymDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindGymsNearby([FromQuery] decimal latitude, [FromQuery] decimal longitude)
         {
             try

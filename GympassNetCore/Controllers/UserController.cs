@@ -7,6 +7,7 @@ using Project.Services.ErrorHandling;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using ApiGympass.Services.Implementations;
+using GympassNetCore.Utils;
 
 namespace ApiGympass.Controllers
 {
@@ -25,7 +26,22 @@ namespace ApiGympass.Controllers
             _tokenService = tokenService;
         }
 
+        /// <summary>
+        /// Creates a new user.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a new user with the given details.
+        /// </remarks>
+        /// <param name="dto">The user data transfer object containing user details.</param>
+        /// <response code="201">If the user is created successfully. The response includes the user details.</response>
+        /// <response code="400">If the request is invalid, typically due to invalid model state.</response>
+        /// <response code="409">If a user with the same identifier already exists.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost]
+        [ProducesResponseType(typeof(ReadUserDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             if (!ModelState.IsValid)
@@ -52,7 +68,23 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Authenticates a user and provides an access token.
+        /// </summary>
+        /// <remarks>
+        /// This method authenticates the user with the provided login credentials. 
+        /// If successful, it returns an access token and sets a refresh token in an HTTP-only cookie.
+        /// </remarks>
+        /// <param name="dto">The login data transfer object containing user credentials.</param>
+        /// <response code="200">If the user is logged in successfully. The response includes the access token.</response>
+        /// <response code="400">If the request is invalid, typically due to an invalid model state.</response>
+        /// <response code="401">If the login credentials are invalid.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> LoginUser([FromBody] LoginUserDto dto)
         {
             if (!ModelState.IsValid)
@@ -92,7 +124,21 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Refreshes the access token using a refresh token stored in a cookie.
+        /// </summary>
+        /// <remarks>
+        /// This method validates the refresh token and issues a new access token if the refresh token is valid.
+        /// </remarks>
+        /// <response code="200">If the refresh token is valid and a new access token is successfully issued.</response>
+        /// <response code="400">If there is no refresh token provided or it is invalid.</response>
+        /// <response code="401">If the refresh token is unauthorized or has expired.</response>
+        /// <response code="500">If an internal server error occurs during the process.</response>
         [HttpPost("refresh-token")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RefreshToken()
         {
             var refreshToken = Request.Cookies["RefreshToken"];
@@ -145,8 +191,27 @@ namespace ApiGympass.Controllers
             return Ok(new { accessToken = newAccessToken });
         }
 
+        /// <summary>
+        /// Updates the details of an existing user.
+        /// </summary>
+        /// <remarks>
+        /// This method updates a user's profile based on the provided information. 
+        /// Users are only allowed to update their own profiles.
+        /// </remarks>
+        /// <param name="userId">The ID of the user to update.</param>
+        /// <param name="updateUserDto">The user data transfer object containing updated user details.</param>
+        /// <response code="200">If the user is updated successfully.</response>
+        /// <response code="400">If the request is invalid, typically due to an invalid model state.</response>
+        /// <response code="401">If the user is unauthorized to update the specified user's profile.</response>
+        /// <response code="404">If the user with the specified ID is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpPut("{userId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserDto updateUserDto)
         {
             if (!ModelState.IsValid)
@@ -179,8 +244,27 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Partially updates the details of an existing user.
+        /// </summary>
+        /// <remarks>
+        /// This method applies a JSON patch to a user's profile. 
+        /// Users are only allowed to patch their own profiles.
+        /// </remarks>
+        /// <param name="userId">The ID of the user to patch.</param>
+        /// <param name="patchDoc">The JSON patch document with updates to the user profile.</param>
+        /// <response code="200">If the user is patched successfully.</response>
+        /// <response code="400">If the request is invalid, typically due to an invalid model state or null patch document.</response>
+        /// <response code="401">If the user is unauthorized to patch the specified user's profile.</response>
+        /// <response code="404">If the user with the specified ID is not found.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpPatch("{userId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> PatchUser(string userId, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
         {
             if (patchDoc == null || !ModelState.IsValid)
@@ -211,11 +295,25 @@ namespace ApiGympass.Controllers
                 _logger.LogError(ex, "PatchUser: Unexpected exception");
                 return StatusCode(500, "An internal server error occurred.");
             }
-            
         }
 
+        /// <summary>
+        /// Retrieves a user's profile based on their user ID.
+        /// </summary>
+        /// <remarks>
+        /// This method returns the profile of a user. Users can only access their own profiles.
+        /// </remarks>
+        /// <param name="userId">The unique identifier of the user.</param>
+        /// <response code="200">If the user is found and returned successfully.</response>
+        /// <response code="401">If the user is unauthorized or tries to access a profile that is not their own.</response>
+        /// <response code="404">If no user is found with the specified ID.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [HttpGet("{userId}")]
+        [ProducesResponseType(typeof(ReadUserDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetUserById(Guid userId)
         {
             try
@@ -243,9 +341,23 @@ namespace ApiGympass.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a list of all users.
+        /// </summary>
+        /// <remarks>
+        /// This method returns a list of all users. Access is restricted to administrators.
+        /// </remarks>
+        /// <response code="200">Returns the list of all users.</response>
+        /// <response code="401">If the user is not authenticated.</response>
+        /// <response code="403">If the user does not have administrator privileges.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [Authorize(Policy = "RequireAdminRole")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<ReadUserDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllUsers()
         {
             var userDtos = await _userService.GetAllUsersAsync();
@@ -253,9 +365,26 @@ namespace ApiGympass.Controllers
             return Ok(userDtos);
         }
 
+        /// <summary>
+        /// Deletes a specified user.
+        /// </summary>
+        /// <remarks>
+        /// This method deletes a user based on the provided user ID. Access is restricted to administrators.
+        /// </remarks>
+        /// <param name="userId">The ID of the user to be deleted.</param>
+        /// <response code="200">If the user is deleted successfully.</response>
+        /// <response code="404">If no user is found with the specified ID.</response>
+        /// <response code="401">If the user is not authenticated.</response>
+        /// <response code="403">If the user does not have administrator privileges.</response>
+        /// <response code="500">If an internal server error occurs.</response>
         [Authorize]
         [Authorize(Policy = "RequireAdminRole")]
         [HttpDelete("{userId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteUser(string userId)
         {
             try
