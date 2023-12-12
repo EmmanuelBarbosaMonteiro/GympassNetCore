@@ -15,6 +15,7 @@ using ApiGympass.Services.ErrorHandling;
 using Project.Services.ErrorHandling;
 using ApiGympass.Services.Interfaces;
 
+//
 namespace ApiGympass.Tests
 {
     public class UserServiceTests
